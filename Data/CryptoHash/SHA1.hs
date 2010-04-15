@@ -10,6 +10,8 @@
 -- A module containing SHA1 bindings
 --
 module Data.CryptoHash.SHA1 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx

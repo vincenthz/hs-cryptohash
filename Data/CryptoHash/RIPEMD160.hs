@@ -10,6 +10,8 @@
 -- A module containing RIPEMD160 bindings
 --
 module Data.CryptoHash.RIPEMD160 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx

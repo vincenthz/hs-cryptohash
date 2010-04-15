@@ -10,6 +10,8 @@
 -- A module containing MD4 bindings
 --
 module Data.CryptoHash.MD4 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx

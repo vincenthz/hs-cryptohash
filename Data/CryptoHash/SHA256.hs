@@ -10,6 +10,8 @@
 -- A module containing SHA256 bindings
 --
 module Data.CryptoHash.SHA256 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx

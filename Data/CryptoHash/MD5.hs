@@ -10,6 +10,8 @@
 -- A module containing MD5 bindings
 --
 module Data.CryptoHash.MD5 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx

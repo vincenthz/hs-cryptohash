@@ -10,6 +10,8 @@
 -- A module containing SHA512 bindings
 --
 module Data.CryptoHash.SHA512 (
+	Ctx(..),
+
 	-- * Incremental hashing Functions
 	init,      -- :: Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx
