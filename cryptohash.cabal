@@ -14,6 +14,7 @@ Library
   Exposed-modules:   Data.CryptoHash.SHA1
                      Data.CryptoHash.SHA224
                      Data.CryptoHash.SHA256
+                     Data.CryptoHash.SHA384
                      Data.CryptoHash.SHA512
                      Data.CryptoHash.MD4
                      Data.CryptoHash.MD5
