@@ -34,8 +34,17 @@ struct sha256_ctx
 	uint64_t sz;
 };
 
+#define sha224_ctx 		sha256_ctx
+
+#define SHA224_DIGEST_SIZE	28
+#define SHA224_CTX_SIZE		sizeof(struct sha224_ctx)
+
 #define SHA256_DIGEST_SIZE	32
 #define SHA256_CTX_SIZE		sizeof(struct sha256_ctx)
+
+void sha224_init(struct sha224_ctx *ctx);
+void sha224_update(struct sha224_ctx *ctx, uint8_t *data, uint32_t len);
+void sha224_finalize(struct sha224_ctx *ctx, uint8_t *out);
 
 void sha256_init(struct sha256_ctx *ctx);
 void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len);

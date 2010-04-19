@@ -26,6 +26,20 @@
 #include "sha256.h"
 #include "bitfn.h"
 
+void sha224_init(struct sha224_ctx *ctx)
+{
+	memset(ctx, 0, sizeof(*ctx));
+
+	ctx->h[0] = 0xc1059ed8;
+	ctx->h[1] = 0x367cd507;
+	ctx->h[2] = 0x3070dd17;
+	ctx->h[3] = 0xf70e5939;
+	ctx->h[4] = 0xffc00b31;
+	ctx->h[5] = 0x68581511;
+	ctx->h[6] = 0x64f98fa7;
+	ctx->h[7] = 0xbefa4fa4;
+}
+
 void sha256_init(struct sha256_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
@@ -99,6 +113,11 @@ static void sha256_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
 	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
+void sha224_update(struct sha224_ctx *ctx, uint8_t *data, uint32_t len)
+{
+	return sha256_update(ctx, data, len);
+}
+
 void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
@@ -126,6 +145,14 @@ void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)
 	/* append data into buf */
 	if (len)
 		memcpy(ctx->buf + index, data, len);
+}
+
+void sha224_finalize(struct sha224_ctx *ctx, uint8_t *out)
+{
+	uint8_t intermediate[SHA256_DIGEST_SIZE];
+
+	sha256_finalize(ctx, intermediate);
+	memcpy(out, intermediate, SHA224_DIGEST_SIZE);
 }
 
 void sha256_finalize(struct sha256_ctx *ctx, uint8_t *out)
