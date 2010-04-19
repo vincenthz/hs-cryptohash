@@ -26,6 +26,20 @@
 #include "bitfn.h"
 #include "sha512.h"
 
+void sha384_init(struct sha512_ctx *ctx)
+{
+	memset(ctx, 0, sizeof(*ctx));
+
+	ctx->h[0] = 0xcbbb9d5dc1059ed8ULL;
+	ctx->h[1] = 0x629a292a367cd507ULL;
+	ctx->h[2] = 0x9159015a3070dd17ULL;
+	ctx->h[3] = 0x152fecd8f70e5939ULL;
+	ctx->h[4] = 0x67332667ffc00b31ULL;
+	ctx->h[5] = 0x8eb44a8768581511ULL;
+	ctx->h[6] = 0xdb0c2e0d64f98fa7ULL;
+	ctx->h[7] = 0x47b5481dbefa4fa4ULL;
+}
+
 void sha512_init(struct sha512_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
@@ -116,6 +130,11 @@ static void sha512_do_chunk(uint8_t buf[], uint64_t state[], uint64_t w[])
 	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
+void sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
+{
+	return sha512_update(ctx, data, len);
+}
+
 void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	unsigned int index, to_fill;
@@ -145,6 +164,14 @@ void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 	/* append data into buf */
 	if (len)
 		memcpy(ctx->buf + index, data, len);
+}
+
+void sha384_finalize(struct sha384_ctx *ctx, uint8_t *out)
+{
+	uint8_t intermediate[SHA512_DIGEST_SIZE];
+
+	sha512_finalize(ctx, intermediate);
+	memcpy(out, intermediate, SHA384_DIGEST_SIZE);
 }
 
 void sha512_finalize(struct sha512_ctx *ctx, uint8_t *out)
