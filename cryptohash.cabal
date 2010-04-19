@@ -12,6 +12,7 @@ Library
   Build-Depends:     base >= 3 && < 5, bytestring
   Extensions:        ForeignFunctionInterface
   Exposed-modules:   Data.CryptoHash.SHA1
+                     Data.CryptoHash.SHA224
                      Data.CryptoHash.SHA256
                      Data.CryptoHash.SHA512
                      Data.CryptoHash.MD4
