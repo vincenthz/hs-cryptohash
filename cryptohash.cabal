@@ -19,7 +19,7 @@ Library
                      Data.CryptoHash.MD4
                      Data.CryptoHash.MD5
                      Data.CryptoHash.RIPEMD160
-  ghc-options:       -Wall
+  ghc-options:       -Wall -O2 -optc-O3
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
