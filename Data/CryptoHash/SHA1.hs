@@ -76,23 +76,28 @@ finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr =
 	allocaBytes digestSize (\cs -> c_sha1_finalize ptr cs >> B.packCStringLen (cs, digestSize))
 
+{-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
 init = unsafePerformIO $ allocInternal $ \ptr -> do (c_sha1_init ptr >> peek ptr)
 
+{-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
 update ctx d = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do updateInternalIO ptr d >> peek ptr
 
+{-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
 finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInternalIO ptr
 
+{-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
 hash d = unsafePerformIO $ allocInternal $ \ptr -> do
 	c_sha1_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
+{-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
 hashlazy l = unsafePerformIO $ allocInternal $ \ptr -> do
