@@ -36,7 +36,7 @@ digestSize :: Int
 sizeCtx :: Int
 
 digestSize = 28
-sizeCtx = 168
+sizeCtx = 192
 
 sizeCtxW :: Int
 sizeCtxW = sizeCtx `div` 4
