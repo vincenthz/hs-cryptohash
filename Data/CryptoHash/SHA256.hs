@@ -28,9 +28,10 @@ import Foreign.C.String
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen, unsafeIndex)
+import Data.ByteString.Internal (create)
 
-data Ctx = Ctx ![Word32]
+data Ctx = Ctx ByteString
 
 digestSize :: Int
 sizeCtx :: Int
@@ -38,20 +39,17 @@ sizeCtx :: Int
 digestSize = 32
 sizeCtx = 192
 
-sizeCtxW :: Int
-sizeCtxW = sizeCtx `div` 4
-
 instance Storable Ctx where
 	sizeOf _    = sizeCtx
 	alignment _ = 16
-	poke ptr (Ctx l) = do
-		let bptr = castPtr ptr :: Ptr Word32
-		mapM_ (\(i, v) -> poke (bptr `plusPtr` (i*4)) v) $ zip [0..(sizeCtxW-1)] l
+	poke ptr (Ctx b) = mapM_ (\i -> poke (ptr `plusPtr` i) (unsafeIndex b i)) [0..(sizeCtx-1)]
 
 	peek ptr = do
-		let bptr = castPtr ptr :: Ptr Word32
-		l <- mapM (\i -> peek $ bptr `plusPtr` (i*4)) [0..(sizeCtxW-1)]
-		return (Ctx l)
+		b <- create sizeCtx (\bptr -> mapM_ (\i -> do
+			f <- peek (ptr `plusPtr` i) :: IO Word8
+			poke (bptr `plusPtr` i) f
+			) [0..(sizeCtx-1)])
+		return $ Ctx $! b
 
 foreign import ccall unsafe "sha256.h sha256_init"
 	c_sha256_init :: Ptr Ctx -> IO ()
