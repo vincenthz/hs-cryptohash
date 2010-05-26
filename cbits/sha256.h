@@ -29,9 +29,9 @@
 
 struct sha256_ctx
 {
-	uint32_t h[8];
-	uint8_t buf[128];
 	uint64_t sz;
+	uint8_t  buf[128];
+	uint32_t h[8];
 };
 
 #define sha224_ctx 		sha256_ctx

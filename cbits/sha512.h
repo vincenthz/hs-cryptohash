@@ -28,9 +28,9 @@
 
 struct sha512_ctx
 {
-	uint64_t h[8];
-	uint8_t buf[128];
 	uint64_t sz[2];
+	uint8_t  buf[128];
+	uint64_t h[8];
 };
 
 #define sha384_ctx sha512_ctx

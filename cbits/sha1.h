@@ -28,9 +28,9 @@
 
 struct sha1_ctx
 {
-	uint32_t h[5];
-	uint8_t buf[64];
 	uint64_t sz;
+	uint8_t  buf[64];
+	uint32_t h[5];
 };
 
 #define SHA1_DIGEST_SIZE	20

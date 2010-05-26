@@ -28,9 +28,9 @@
 
 struct md5_ctx
 {
-	uint32_t h[4];
-	uint8_t buf[64];
 	uint64_t sz;
+	uint8_t  buf[64];
+	uint32_t h[4];
 };
 
 #define MD5_DIGEST_SIZE		16
