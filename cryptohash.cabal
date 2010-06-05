@@ -16,6 +16,7 @@ Library
                      Data.CryptoHash.SHA256
                      Data.CryptoHash.SHA384
                      Data.CryptoHash.SHA512
+                     Data.CryptoHash.MD2
                      Data.CryptoHash.MD4
                      Data.CryptoHash.MD5
                      Data.CryptoHash.RIPEMD160
@@ -23,6 +24,7 @@ Library
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
+                     cbits/md2.c
                      cbits/md4.c
                      cbits/md5.c
                      cbits/ripemd.c
