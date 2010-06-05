@@ -1,5 +1,5 @@
 Name:                cryptohash
-Version:             0.2
+Version:             0.3
 Description:         Efficient crypto hash computation
 License:             BSD3
 License-file:        LICENSE
