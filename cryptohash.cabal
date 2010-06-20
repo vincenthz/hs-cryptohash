@@ -8,6 +8,10 @@ Maintainer:          vincent@snarc.org
 Build-Type:          Simple
 Cabal-Version:       >=1.2
 
+Flag unittest
+  Description:       Build unit test
+  Default:           False
+
 Library
   Build-Depends:     base >= 3 && < 5, bytestring
   Extensions:        ForeignFunctionInterface
@@ -29,3 +33,19 @@ Library
                      cbits/md5.c
                      cbits/ripemd.c
   Include-Dirs:      cbits
+
+Executable           Tests
+  Main-Is:           Tests.hs
+  Extensions:        ForeignFunctionInterface
+  Build-depends:     base >= 3 && < 5, HUnit, bytestring
+  C-sources:         cbits/sha1.c
+                     cbits/sha256.c
+                     cbits/sha512.c
+                     cbits/md2.c
+                     cbits/md4.c
+                     cbits/md5.c
+                     cbits/ripemd.c
+  if flag(unittest)
+    Buildable:       True
+  else
+    Buildable:       False
