@@ -56,17 +56,18 @@ void ripemd160_init(struct ripemd160_ctx *ctx)
 #define R(a, b, c, d, e, f, k, i, s)	\
 	a += f(b, c, d) + w[i] + k; a = rol32(a, s) + e; c = rol32(c, 10)
 
-static void ripemd160_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
+static void ripemd160_do_chunk(struct ripemd160_ctx *ctx, uint32_t *buf)
 {
 	uint32_t a1, b1, c1, d1, e1, a2, b2, c2, d2, e2;
 #ifdef ARCH_IS_BIG_ENDIAN
-	cpu_to_le32_array(w, (uint32_t *) buf, 16);
+	uint32_t w[16];
+	cpu_to_le32_array(w, buf, 16);
 #else
-	w = (uint32_t *) buf;
+	uint32_t *w = buf;
 #endif
 
-	a1 = state[0]; b1 = state[1]; c1 = state[3]; d1 = state[4]; e1 = state[5];
-	a2 = state[0]; b2 = state[1]; c2 = state[3]; d2 = state[4]; e2 = state[5];
+	a1 = ctx->h[0]; b1 = ctx->h[1]; c1 = ctx->h[2]; d1 = ctx->h[3]; e1 = ctx->h[4];
+	a2 = ctx->h[0]; b2 = ctx->h[1]; c2 = ctx->h[2]; d2 = ctx->h[3]; e2 = ctx->h[4];
 
 	/* 5 passes on first state copy */
 	R(a1, b1, c1, d1, e1, f1, K1, 0, 11);
@@ -240,18 +241,17 @@ static void ripemd160_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
 	R(c2, d2, e2, a2, b2, f1, K1, 9, 11);
 	R(b2, c2, d2, e2, a2, f1, K1, 11, 11);
 
-	d2 += c1 + state[1];
-	state[1] = state[2] + d1 + e2;
-	state[2] = state[3] + e1 + a2;
-	state[3] = state[4] + a1 + b2;
-	state[4] = state[0] + b1 + c2;
-	state[0] = d2;
+	d2 += c1 + ctx->h[1];
+	ctx->h[1] = ctx->h[2] + d1 + e2;
+	ctx->h[2] = ctx->h[3] + e1 + a2;
+	ctx->h[3] = ctx->h[4] + a1 + b2;
+	ctx->h[4] = ctx->h[0] + b1 + c2;
+	ctx->h[0] = d2;
 }
 
 void ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
-	uint32_t w[16];
 
 	index = (uint32_t) (ctx->sz & 0x3f);
 	to_fill = 64 - index;
@@ -259,14 +259,14 @@ void ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
 	ctx->sz += len;
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		ripemd160_do_chunk(ctx->buf, ctx->h, w);
+		ripemd160_do_chunk(ctx, (uint32_t *) ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
 	}
 
 	for (; len >= 64; len -= 64, data += 64)
-		ripemd160_do_chunk(data, ctx->h, w);
+		ripemd160_do_chunk(ctx, (uint32_t *) data);
 
 	if (len)
 		memcpy(ctx->buf + index, data, len);

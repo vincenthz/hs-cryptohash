@@ -44,11 +44,16 @@ void md5_init(struct md5_ctx *ctx)
 #define f4(x, y, z)	(y ^ (x | ~z))
 #define R(f, a, b, c, d, i, k, s) a += f(b, c, d) + w[i] + k; a = rol32(a, s); a += b
 
-static void md5_do_chunk_le(uint32_t w[], uint32_t h[])
+static void md5_do_chunk(struct md5_ctx *ctx, uint32_t *buf)
 {
 	uint32_t a, b, c, d;
-
-	a = h[0]; b = h[1]; c = h[2]; d = h[3];
+#ifdef ARCH_IS_BIG_ENDIAN
+	uint32_t w[16];
+	cpu_to_le32_array(w, buf, 16);
+#else
+	uint32_t *w = buf;
+#endif
+	a = ctx->h[0]; b = ctx->h[1]; c = ctx->h[2]; d = ctx->h[3];
 
 	R(f1, a, b, c, d, 0, 0xd76aa478, 7);
 	R(f1, d, a, b, c, 1, 0xe8c7b756, 12);
@@ -118,18 +123,7 @@ static void md5_do_chunk_le(uint32_t w[], uint32_t h[])
 	R(f4, c, d, a, b, 2, 0x2ad7d2bb, 15);
 	R(f4, b, c, d, a, 9, 0xeb86d391, 21);
 
-	h[0] += a; h[1] += b; h[2] += c; h[3] += d;
-}
-
-static void md5_do_chunk(uint8_t buf[], uint32_t h[])
-{
-#ifdef ARCH_IS_BIG_ENDIAN
-	uint32_t w[16];
-	cpu_to_le32_array(w, (uint32_t *) buf, 16);
-	md5_do_chunk_le(w, h);
-#else
-	md5_do_chunk_le((uint32_t *) buf, h);
-#endif
+	ctx->h[0] += a; ctx->h[1] += b; ctx->h[2] += c; ctx->h[3] += d;
 }
 
 void md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len)
@@ -143,7 +137,7 @@ void md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len)
 
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		md5_do_chunk(ctx->buf, ctx->h);
+		md5_do_chunk(ctx, (uint32_t *) ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
@@ -151,7 +145,7 @@ void md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 64-block as possible */
 	for (; len >= 64; len -= 64, data += 64)
-		md5_do_chunk(data, ctx->h);
+		md5_do_chunk(ctx, (uint32_t *) data);
 
 	/* append data into buf */
 	if (len)

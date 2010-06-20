@@ -74,17 +74,18 @@ static const uint32_t k[] = {
 #define s0(x)       (ror32(x, 7) ^ ror32(x,18) ^ (x >> 3))
 #define s1(x)       (ror32(x,17) ^ ror32(x,19) ^ (x >> 10))
 
-static void sha256_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
+static void sha256_do_chunk(struct sha256_ctx *ctx, uint32_t buf[])
 {
 	uint32_t a, b, c, d, e, f, g, h, t1, t2;
 	int i;
+	uint32_t w[64];
 
-	cpu_to_be32_array(w, (uint32_t *) buf, 16);
+	cpu_to_be32_array(w, buf, 16);
 	for (i = 16; i < 64; i++)
 		w[i] = s1(w[i - 2]) + w[i - 7] + s0(w[i - 15]) + w[i - 16];
 
-	a = state[0]; b = state[1]; c = state[2]; d = state[3];
-	e = state[4]; f = state[5]; g = state[6]; h = state[7];
+	a = ctx->h[0]; b = ctx->h[1]; c = ctx->h[2]; d = ctx->h[3];
+	e = ctx->h[4]; f = ctx->h[5]; g = ctx->h[6]; h = ctx->h[7];
 
 #define R(a, b, c, d, e, f, g, h, k, w)			\
 	t1 = h + e1(e) + (g ^ (e & (f ^ g))) + k + w; 	\
@@ -109,8 +110,8 @@ static void sha256_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
 #undef R
 #undef PASS
 
-	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+	ctx->h[0] += a; ctx->h[1] += b; ctx->h[2] += c; ctx->h[3] += d;
+	ctx->h[4] += e; ctx->h[5] += f; ctx->h[6] += g; ctx->h[7] += h;
 }
 
 void sha224_update(struct sha224_ctx *ctx, uint8_t *data, uint32_t len)
@@ -121,7 +122,6 @@ void sha224_update(struct sha224_ctx *ctx, uint8_t *data, uint32_t len)
 void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
-	uint32_t w[64];
 
 	/* check for partial buffer */
 	index = (uint32_t) (ctx->sz & 0x3f);
@@ -132,7 +132,7 @@ void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)
 	/* process partial buffer if there's enough data to make a block */
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		sha256_do_chunk(ctx->buf, ctx->h, w);
+		sha256_do_chunk(ctx, (uint32_t *) ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
@@ -140,7 +140,7 @@ void sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 64-block as possible */
 	for (; len >= 64; len -= 64, data += 64)
-		sha256_do_chunk(data, ctx->h, w);
+		sha256_do_chunk(ctx, (uint32_t *) data);
 
 	/* append data into buf */
 	if (len)

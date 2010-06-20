@@ -72,16 +72,16 @@ static uint8_t *padding_table[] = {
 	"\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10"
 };
 
-static void md2_do_chunk(uint8_t buf[], uint8_t h[], uint8_t cksum[])
+static void md2_do_chunk(struct md2_ctx *ctx, uint8_t *buf)
 {
 	uint8_t i, j, t;
 	uint8_t x[48];
 
-	memcpy(x, h, 16);
+	memcpy(x, ctx->h, 16);
 	memcpy(x+16, buf, 16);
 
 	for (i = 0; i < 16; i++)
-		x[i+32] = h[i] ^ buf[i];
+		x[i+32] = ctx->h[i] ^ buf[i];
 
 	for (t = i = 0; i < 18; i++) {
 		for (j = 0; j < 48; j++)
@@ -89,11 +89,11 @@ static void md2_do_chunk(uint8_t buf[], uint8_t h[], uint8_t cksum[])
 		t = (t + i) & 0xff;
 	}
 
-	memcpy (h, x, 16);
+	memcpy (ctx->h, x, 16);
 
-	t = cksum[15];
+	t = ctx->cksum[15];
 	for (i = 0; i < 16; i++)
-		t = cksum[i] ^= S_table[buf[i] ^ t];
+		t = ctx->cksum[i] ^= S_table[buf[i] ^ t];
 }
 
 void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
@@ -107,7 +107,7 @@ void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
 
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		md2_do_chunk(ctx->buf, ctx->h, ctx->cksum);
+		md2_do_chunk(ctx, ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
@@ -115,7 +115,7 @@ void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 16-block as possible */
 	for (; len >= 16; len -= 16, data += 16)
-		md2_do_chunk(data, ctx->h, ctx->cksum);
+		md2_do_chunk(ctx, data);
 
 	/* append data into buf */
 	if (len)

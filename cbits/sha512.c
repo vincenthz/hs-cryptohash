@@ -90,18 +90,19 @@ static const uint64_t k[] = {
 #define s0(x)       (ror64(x, 1) ^ ror64(x, 8) ^ (x >> 7))
 #define s1(x)       (ror64(x, 19) ^ ror64(x, 61) ^ (x >> 6))
 
-static void sha512_do_chunk(uint8_t buf[], uint64_t state[], uint64_t w[])
+static void sha512_do_chunk(struct sha512_ctx *ctx, uint64_t *buf)
 {
 	uint64_t a, b, c, d, e, f, g, h, t1, t2;
 	int i;
+	uint64_t w[80];
 
-	cpu_to_be64_array(w, (uint64_t *) buf, 16);
+	cpu_to_be64_array(w, buf, 16);
 
 	for (i = 16; i < 80; i++)
 		w[i] = s1(w[i - 2]) + w[i - 7] + s0(w[i - 15]) + w[i - 16];
 
-	a = state[0]; b = state[1]; c = state[2]; d = state[3];
-	e = state[4]; f = state[5]; g = state[6]; h = state[7];
+	a = ctx->h[0]; b = ctx->h[1]; c = ctx->h[2]; d = ctx->h[3];
+	e = ctx->h[4]; f = ctx->h[5]; g = ctx->h[6]; h = ctx->h[7];
 
 #define R(a, b, c, d, e, f, g, h, k, w)			\
 	t1 = h + e1(e) + (g ^ (e & (f ^ g))) + k + w;	\
@@ -126,8 +127,8 @@ static void sha512_do_chunk(uint8_t buf[], uint64_t state[], uint64_t w[])
 #undef R
 #undef PASS
 
-	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-	state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+	ctx->h[0] += a; ctx->h[1] += b; ctx->h[2] += c; ctx->h[3] += d;
+	ctx->h[4] += e; ctx->h[5] += f; ctx->h[6] += g; ctx->h[7] += h;
 }
 
 void sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
@@ -138,7 +139,6 @@ void sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
 void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	unsigned int index, to_fill;
-	uint64_t w[80];
 
 	/* check for partial buffer */
 	index = (unsigned int) (ctx->sz[0] & 0x7f);
@@ -151,7 +151,7 @@ void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 	/* process partial buffer if there's enough data to make a block */
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		sha512_do_chunk(ctx->buf, ctx->h, w);
+		sha512_do_chunk(ctx, (uint64_t *) ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
@@ -159,7 +159,7 @@ void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 128-block as possible */
 	for (; len >= 128; len -= 128, data += 128)
-		sha512_do_chunk(data, ctx->h, w);
+		sha512_do_chunk(ctx, (uint64_t *) data);
 
 	/* append data into buf */
 	if (len)

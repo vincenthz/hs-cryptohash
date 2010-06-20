@@ -57,24 +57,26 @@ void sha1_init(struct sha1_ctx *ctx)
               ^ w[(i - 8) & 0x0f] ^ w[(i - 3) & 0x0f], 1))
 #endif
 
-static inline void sha1_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
+static inline void sha1_do_chunk(struct sha1_ctx *ctx, uint32_t *buf)
 {
 	uint32_t a, b, c, d, e;
 #if (defined(__arm__))
 	uint32_t i;
+	uint32_t w[80];
 	for (i = 0; i < 16; i++)
-		w[i] = be32_to_cpu(((uint32_t *) buf)[i]);
+		w[i] = be32_to_cpu(buf[i]);
 	for (; i < 80; i++)
 		w[i] = rol32(w[i & 0x0f] ^ w[(i - 14) & 0x0f] ^
 		             w[(i - 8) % 0x0f] ^ w[(i - 3) & 0x0f], 1);
 #else
-#define CPY(i)	w[i] = be32_to_cpu(((uint32_t *) buf)[i])
+	uint32_t w[16];
+#define CPY(i)	w[i] = be32_to_cpu(buf[i])
 	CPY(0); CPY(1); CPY(2); CPY(3); CPY(4); CPY(5); CPY(6); CPY(7);
 	CPY(8); CPY(9); CPY(10); CPY(11); CPY(12); CPY(13); CPY(14); CPY(15);
 #undef CPY
 #endif
 
-	a = state[0]; b = state[1]; c = state[2]; d = state[3]; e = state[4];
+	a = ctx->h[0]; b = ctx->h[1]; c = ctx->h[2]; d = ctx->h[3]; e = ctx->h[4];
 
 	R(a, b, c, d, e, f1, K1, w[0]);
 	R(e, a, b, c, d, f1, K1, w[1]);
@@ -160,17 +162,16 @@ static inline void sha1_do_chunk(uint8_t buf[], uint32_t state[], uint32_t w[])
 	R(c, d, e, a, b, f4, K4, M(78));
 	R(b, c, d, e, a, f4, K4, M(79));
 
-	state[0] += a;
-	state[1] += b;
-	state[2] += c;
-	state[3] += d;
-	state[4] += e;
+	ctx->h[0] += a;
+	ctx->h[1] += b;
+	ctx->h[2] += c;
+	ctx->h[3] += d;
+	ctx->h[4] += e;
 }
 
 void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
-	uint32_t w[80];
 
 	index = (uint32_t) (ctx->sz & 0x3f);
 	to_fill = 64 - index;
@@ -180,7 +181,7 @@ void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
 	/* process partial buffer if there's enough data to make a block */
 	if (index && len >= to_fill) {
 		memcpy(ctx->buf + index, data, to_fill);
-		sha1_do_chunk(ctx->buf, ctx->h, w);
+		sha1_do_chunk(ctx, (uint32_t *) ctx->buf);
 		len -= to_fill;
 		data += to_fill;
 		index = 0;
@@ -188,7 +189,7 @@ void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 64-block as possible */
 	for (; len >= 64; len -= 64, data += 64)
-		sha1_do_chunk(data, ctx->h, w);
+		sha1_do_chunk(ctx, (uint32_t *) data);
 
 	/* append data into buf */
 	if (len)
