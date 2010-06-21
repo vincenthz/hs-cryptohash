@@ -154,13 +154,12 @@ void sha224_finalize(struct sha224_ctx *ctx, uint8_t *out)
 void sha256_finalize(struct sha256_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
-	uint32_t bits[2];
+	uint64_t bits;
 	uint32_t i, index, padlen;
 	uint32_t *p = (uint32_t *) out;
 
 	/* cpu -> big endian */
-	bits[0] = cpu_to_be32((uint32_t) (ctx->sz >> 29));
-	bits[1] = cpu_to_be32((uint32_t) (ctx->sz << 3));
+	bits = cpu_to_be64(ctx->sz << 3);
 
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
@@ -168,7 +167,7 @@ void sha256_finalize(struct sha256_ctx *ctx, uint8_t *out)
 	sha256_update(ctx, padding, padlen);
 
 	/* append length */
-	sha256_update(ctx, (uint8_t *) bits, sizeof(bits));
+	sha256_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* store to digest */
 	for (i = 0; i < 8; i++)

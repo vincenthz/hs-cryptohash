@@ -155,13 +155,12 @@ void md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len)
 void md5_finalize(struct md5_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
-	uint32_t bits[2];
+	uint64_t bits;
 	uint32_t index, padlen;
 	uint32_t *p = (uint32_t *) out;
 
 	/* add padding and update data with it */
-	bits[0] = cpu_to_le32((uint32_t) (ctx->sz << 3));
-	bits[1] = cpu_to_le32((uint32_t) (ctx->sz >> 29));
+	bits = cpu_to_le64(ctx->sz << 3);
 
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
@@ -169,7 +168,7 @@ void md5_finalize(struct md5_ctx *ctx, uint8_t *out)
 	md5_update(ctx, padding, padlen);
 
 	/* append length */
-	md5_update(ctx, (uint8_t *) bits, sizeof(bits));
+	md5_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output hash */
 	p[0] = cpu_to_le32(ctx->h[0]);
