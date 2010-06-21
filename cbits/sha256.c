@@ -93,22 +93,18 @@ static void sha256_do_chunk(struct sha256_ctx *ctx, uint32_t buf[])
 	d += t1;					\
 	h = t1 + t2;
 
-#define PASS(i)						\
-	R(a, b, c, d, e, f, g, h, k[i + 0], w[i + 0]);	\
-	R(h, a, b, c, d, e, f, g, k[i + 1], w[i + 1]);	\
-	R(g, h, a, b, c, d, e, f, k[i + 2], w[i + 2]);	\
-	R(f, g, h, a, b, c, d, e, k[i + 3], w[i + 3]);	\
-	R(e, f, g, h, a, b, c, d, k[i + 4], w[i + 4]);	\
-	R(d, e, f, g, h, a, b, c, k[i + 5], w[i + 5]);	\
-	R(c, d, e, f, g, h, a, b, k[i + 6], w[i + 6]);	\
-	R(b, c, d, e, f, g, h, a, k[i + 7], w[i + 7])
-
 	for (i = 0; i < 64; i += 8) {
-		PASS(i);
+		R(a, b, c, d, e, f, g, h, k[i + 0], w[i + 0]);
+		R(h, a, b, c, d, e, f, g, k[i + 1], w[i + 1]);
+		R(g, h, a, b, c, d, e, f, k[i + 2], w[i + 2]);
+		R(f, g, h, a, b, c, d, e, k[i + 3], w[i + 3]);
+		R(e, f, g, h, a, b, c, d, k[i + 4], w[i + 4]);
+		R(d, e, f, g, h, a, b, c, k[i + 5], w[i + 5]);
+		R(c, d, e, f, g, h, a, b, k[i + 6], w[i + 6]);
+		R(b, c, d, e, f, g, h, a, k[i + 7], w[i + 7]);
 	}
 
 #undef R
-#undef PASS
 
 	ctx->h[0] += a; ctx->h[1] += b; ctx->h[2] += c; ctx->h[3] += d;
 	ctx->h[4] += e; ctx->h[5] += f; ctx->h[6] += g; ctx->h[7] += h;
