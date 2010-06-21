@@ -275,13 +275,12 @@ void ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
 void ripemd160_finalize(struct ripemd160_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
-	uint32_t bits[2];
+	uint64_t bits;
 	uint32_t index, padlen;
 	uint32_t *p = (uint32_t *) out;
 
 	/* add padding and update data with it */
-	bits[0] = cpu_to_le32((uint32_t) (ctx->sz >> 29));
-	bits[1] = cpu_to_le32((uint32_t) (ctx->sz << 3));
+	bits = cpu_to_le64(ctx->sz << 3);
 
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
@@ -289,7 +288,7 @@ void ripemd160_finalize(struct ripemd160_ctx *ctx, uint8_t *out)
 	ripemd160_update(ctx, padding, padlen);
 
 	/* append length */
-	ripemd160_update(ctx, (uint8_t *) bits, sizeof(bits));
+	ripemd160_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output digest */
 	p[0] = cpu_to_le32(ctx->h[0]);
