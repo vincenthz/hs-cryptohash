@@ -5,6 +5,8 @@ License:             BSD3
 License-file:        LICENSE
 Author:              Vincent Hanquez
 Maintainer:          vincent@snarc.org
+Synopsis:            crypto hashes fast and pratical
+Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.2
 
