@@ -10,7 +10,7 @@ Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.2
 
-Flag unittest
+Flag test
   Description:       Build unit test
   Default:           False
 
@@ -47,7 +47,7 @@ Executable           Tests
                      cbits/md4.c
                      cbits/md5.c
                      cbits/ripemd.c
-  if flag(unittest)
+  if flag(test)
     Buildable:       True
   else
     Buildable:       False
