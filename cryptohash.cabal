@@ -8,7 +8,7 @@ Maintainer:          vincent@snarc.org
 Synopsis:            crypto hashes fast and pratical
 Category:            Data, Cryptography
 Build-Type:          Simple
-Cabal-Version:       >=1.2
+Cabal-Version:       >=1.6
 
 Flag test
   Description:       Build unit test
