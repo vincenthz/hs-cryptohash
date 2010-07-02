@@ -39,7 +39,6 @@ Library
 Executable           Tests
   Main-Is:           Tests.hs
   Extensions:        ForeignFunctionInterface
-  Build-depends:     base >= 3 && < 5, HUnit, bytestring
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
@@ -49,6 +48,7 @@ Executable           Tests
                      cbits/ripemd.c
   if flag(test)
     Buildable:       True
+    Build-depends:   base >= 3 && < 5, HUnit, bytestring
   else
     Buildable:       False
 
