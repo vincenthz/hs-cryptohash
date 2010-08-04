@@ -12,6 +12,7 @@ import qualified Data.CryptoHash.SHA256 as SHA256
 import qualified Data.CryptoHash.SHA384 as SHA384
 import qualified Data.CryptoHash.SHA512 as SHA512
 import qualified Data.CryptoHash.RIPEMD160 as RIPEMD160
+import qualified Data.CryptoHash.Tiger as Tiger
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -33,6 +34,7 @@ sha256Hash = HashFct { fctHash = SHA256.hash, fctInc = hashinc SHA256.init SHA25
 sha384Hash = HashFct { fctHash = SHA384.hash, fctInc = hashinc SHA384.init SHA384.update SHA384.finalize }
 sha512Hash = HashFct { fctHash = SHA512.hash, fctInc = hashinc SHA512.init SHA512.update SHA512.finalize }
 ripemd160Hash = HashFct { fctHash = RIPEMD160.hash, fctInc = hashinc RIPEMD160.init RIPEMD160.update RIPEMD160.finalize }
+tigerHash = HashFct { fctHash = Tiger.hash, fctInc = hashinc Tiger.init Tiger.update Tiger.finalize }
 
 results :: [ (String, HashFct, [String]) ]
 results = [
@@ -71,7 +73,11 @@ results = [
 	("RIPEMD160", ripemd160Hash, [
 		"9c1185a5c5e9fc54612808977ee8f548b2258d31",
 		"37f332f68db77bd9d7edd4969571ad671cf9dd3b",
-		"132072df690933835eb8b6ad0b77e7b6f14acad7" ])
+		"132072df690933835eb8b6ad0b77e7b6f14acad7" ]),
+	("Tiger", tigerHash, [
+		"3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3",
+		"6d12a41e72e644f017b6f0e2f7b44c6285f06dd5d2c5b075",
+		"a8f04b0f7201a0d728101c9d26525b31764a3493fcd8458f" ])
 	]
 
 hexalise s =
