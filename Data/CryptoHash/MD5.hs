@@ -54,7 +54,7 @@ instance Storable Ctx where
 foreign import ccall unsafe "md5.h md5_init"
 	c_md5_init :: Ptr Ctx -> IO ()
 
-foreign import ccall unsafe "md5.h md5_update"
+foreign import ccall "md5.h md5_update"
 	c_md5_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "md5.h md5_finalize"

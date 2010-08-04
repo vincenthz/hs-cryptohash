@@ -54,7 +54,7 @@ instance Storable Ctx where
 foreign import ccall unsafe "ripemd.h ripemd160_init"
 	c_ripemd160_init :: Ptr Ctx -> IO ()
 
-foreign import ccall unsafe "ripemd.h ripemd160_update"
+foreign import ccall "ripemd.h ripemd160_update"
 	c_ripemd160_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "ripemd.h ripemd160_finalize"

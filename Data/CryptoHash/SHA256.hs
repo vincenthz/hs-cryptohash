@@ -54,7 +54,7 @@ instance Storable Ctx where
 foreign import ccall unsafe "sha256.h sha256_init"
 	c_sha256_init :: Ptr Ctx -> IO ()
 
-foreign import ccall unsafe "sha256.h sha256_update"
+foreign import ccall "sha256.h sha256_update"
 	c_sha256_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "sha256.h sha256_finalize"
