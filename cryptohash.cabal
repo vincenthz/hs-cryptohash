@@ -9,11 +9,11 @@ Synopsis:            crypto hashes fast and practical
 Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.6
+data-files:          README
 
 extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
   cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h
-  README
 
 Flag test
   Description:       Build unit test
