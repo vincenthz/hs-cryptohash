@@ -14,6 +14,7 @@ data-files:          README
 extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
   cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h
+  cbits/tiger.h
 
 Flag test
   Description:       Build unit test
@@ -31,6 +32,7 @@ Library
                      Data.CryptoHash.MD4
                      Data.CryptoHash.MD5
                      Data.CryptoHash.RIPEMD160
+                     Data.CryptoHash.Tiger
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
@@ -39,6 +41,7 @@ Library
                      cbits/md4.c
                      cbits/md5.c
                      cbits/ripemd.c
+                     cbits/tiger.c
   Include-Dirs:      cbits
 
 Executable           Tests
@@ -51,6 +54,7 @@ Executable           Tests
                      cbits/md4.c
                      cbits/md5.c
                      cbits/ripemd.c
+                     cbits/tiger.c
   if flag(test)
     Buildable:       True
     Build-depends:   base >= 3 && < 5, HUnit, bytestring
