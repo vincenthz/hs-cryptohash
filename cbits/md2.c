@@ -89,7 +89,7 @@ static void md2_do_chunk(struct md2_ctx *ctx, uint8_t *buf)
 		t = (t + i) & 0xff;
 	}
 
-	memcpy (ctx->h, x, 16);
+	memcpy(ctx->h, x, 16);
 
 	t = ctx->cksum[15];
 	for (i = 0; i < 16; i++)
