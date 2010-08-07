@@ -1,11 +1,16 @@
 Name:                cryptohash
-Version:             0.4.1
-Description:         Efficient crypto hash computation
+Version:             0.5
+Description:
+    A collection of crypto hashes, with a practical incremental and one-pass, pure APIs,
+    with performance close to the fastest implementations available in others languages.
+    .
+    The implementations are made in C with a haskell FFI wrapper that hide the C implementation.
+
 License:             BSD3
 License-file:        LICENSE
 Author:              Vincent Hanquez
 Maintainer:          vincent@snarc.org
-Synopsis:            crypto hashes fast and practical
+Synopsis:            collection of crypto hashes, fast, pure and pratical
 Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.6
