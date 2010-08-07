@@ -13,6 +13,7 @@ import qualified Data.CryptoHash.SHA384 as SHA384
 import qualified Data.CryptoHash.SHA512 as SHA512
 import qualified Data.CryptoHash.RIPEMD160 as RIPEMD160
 import qualified Data.CryptoHash.Tiger as Tiger
+import qualified Data.CryptoHash.Skein512 as Skein512
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -35,6 +36,8 @@ sha384Hash = HashFct { fctHash = SHA384.hash, fctInc = hashinc SHA384.init SHA38
 sha512Hash = HashFct { fctHash = SHA512.hash, fctInc = hashinc SHA512.init SHA512.update SHA512.finalize }
 ripemd160Hash = HashFct { fctHash = RIPEMD160.hash, fctInc = hashinc RIPEMD160.init RIPEMD160.update RIPEMD160.finalize }
 tigerHash = HashFct { fctHash = Tiger.hash, fctInc = hashinc Tiger.init Tiger.update Tiger.finalize }
+
+skein512Hash x = HashFct { fctHash = Skein512.hash x, fctInc = hashinc (Skein512.init x) Skein512.update Skein512.finalize }
 
 results :: [ (String, HashFct, [String]) ]
 results = [
@@ -78,6 +81,22 @@ results = [
 		"3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3",
 		"6d12a41e72e644f017b6f0e2f7b44c6285f06dd5d2c5b075",
 		"a8f04b0f7201a0d728101c9d26525b31764a3493fcd8458f" ])
+	, ("Skein512-160", skein512Hash 160, [
+		"b034bcc065b01b0c486159b3dba3e03aa52fdd70",
+		"9709e7d913bc3eee240e1f302840a0da9d9acc48",
+		"fb2cc0959e884d66927346552df8b51d2d98690c" ])
+	, ("Skein512-384", skein512Hash 384, [
+		"2c3fe10673f4d6904f27585fc3df455a678bc12d7d39d6be4b37f47b80a43889181103bc727a7db4b4e2d2dec1ded86a",
+		"19d373842a6dd304454d6673cb3a8b7871f139477ac28900de739a31789f6e2846d3b641b2e8386f65061efe602d7cac",
+		"bbc4e1089364dd69b0847a06bff6ce19889fed18bf57c901402c74e22ba763bf0dacb9b1d24efc78d969170fd434dad7" ])
+	, ("Skein512-512", skein512Hash 512, [
+		"5af68a4912e0a6187a004947a9d2a37d7a1f0873f0bdd9dc64838ece60da5535c2a55d039bd58e178948996b7a8336486ed969c894be658e47d595a5a9b86a8b",
+		"e38e8ec4814aa2ca485c8ace47c929691ec6acabf2d2795006306267210728d5576d6b7d361bbf99fb1e843d9027b340f828ad074315a5d4b71361de34c511c0",
+		"cd90f50e10e7fe59e263c3796b92795a78fcf561f0fea07b04faeb4e602edb4d6d9f927cc0b5f2b0671e7c7e5fc42ca8875222bcfd42936c542d8f2312fd3615" ])
+	, ("Skein512-896", skein512Hash 896, [
+		"bcc274c53cfa75284f8dcf71e28d19bf52f0e218c241cc1c23e2da043bf61c383899c67fdcbb7511de1831a9113720125127876df2bd0cd57d99ef303baf209c00998bc7d3749f6845d9eaf32ac629de84ac3b494efa29a68cb93d65fd25a2dcef515484b78381eede4af762a1d2f188",
+		"7ad8b71b5bdcaff6f785c9b80b2b1f5fe56030f3ead98965d1ebd20ae75388c2e94097b32a01b7d11a32cef60ea9268170db51726cddf9ee62c3f33e3f84f8ec470053affb564952da6a9cb5e8a4baba8e72b9612ea95863c99b7e59a461288459990ef063fe0b066f8f24fb3794e708",
+		"14b22fe85d5b22f8aa921f32bab0e2cca9d88971dd6f7624506c6662faec9c7429be5bc54be37734c52f10cd866612d0e364023e1db888579b6d9462530807ade129d308adb09eb3308ad8c8731aedb1559f6cefd7d4d9761627f727a79a149788fb267439004d5f7a8dad69a6046d8b" ])
 	]
 
 hexalise s =
