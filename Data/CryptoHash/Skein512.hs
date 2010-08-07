@@ -13,13 +13,13 @@ module Data.CryptoHash.Skein512 (
 	Ctx(..),
 
 	-- * Incremental hashing Functions
-	init,      -- :: Ctx
+	init,      -- :: Int -> Ctx
 	update,    -- :: Ctx -> ByteString -> Ctx
 	finalize,  -- :: Ctx -> ByteString
 
 	-- * Single Pass hashing
-	hash,      -- :: ByteString -> ByteString
-	hashlazy   -- :: ByteString -> ByteString
+	hash,      -- :: Int -> ByteString -> ByteString
+	hashlazy   -- :: Int -> ByteString -> ByteString
 	) where
 
 import Prelude hiding (init)
