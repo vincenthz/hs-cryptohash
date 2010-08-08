@@ -23,27 +23,9 @@
  */
 
 #include <string.h>
+#include "skein.h"
 #include "skein512.h"
 #include "bitfn.h"
-
-#define SKEIN_VERSION 1ULL
-#define SKEIN_IDSTRING 0x33414853ULL
-
-/*
-t0 0-63 || t1 64-127
-0-95      96-111      112-118    119     120-125  126    127
-Position  reserved    TreeLevel  BitPad  Type     First  Final
-*/
-#define FLAG_FIRST   (1ULL << 62)
-#define FLAG_FINAL   (1ULL << 63)
-#define FLAG_TYPE(x) (((uint64_t) ((x) & 0x3f)) << 56)
-
-#define TYPE_KEY     0x00
-#define TYPE_CFG     0x04
-#define TYPE_MSG     0x30
-#define TYPE_OUT     0x3f
-
-#define SET_TYPE(ctx, ty) ctx->t0 = 0; ctx->t1 = (ty)
 
 static const uint8_t K512_0[4] = { 46, 36, 19, 37, };
 static const uint8_t K512_1[4] = { 33, 27, 14, 42, };
