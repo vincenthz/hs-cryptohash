@@ -35,7 +35,7 @@ import Data.ByteString.Internal (create)
 data Ctx = Ctx !ByteString
 
 sizeCtx :: Int
-sizeCtx = 160
+sizeCtx = 100
 
 instance Storable Ctx where
 	sizeOf _    = sizeCtx

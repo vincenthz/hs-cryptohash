@@ -30,8 +30,8 @@ struct skein256_ctx
 {
 	uint32_t hashlen;
 	uint32_t bufindex;
-	uint8_t  buf[64];
-	uint64_t h[8];
+	uint8_t  buf[32];
+	uint64_t h[4];
 	uint64_t t0;
 	uint64_t t1;
 };
