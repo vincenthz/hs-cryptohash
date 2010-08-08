@@ -1,15 +1,15 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 -- |
--- Module      : Data.CryptoHash.Skein512
+-- Module      : Data.CryptoHash.Skein256
 -- License     : BSD-style
 -- Maintainer  : Vincent Hanquez <vincent@snarc.org>
 -- Stability   : experimental
 -- Portability : unknown
 --
--- A module containing Skein512 bindings
+-- A module containing Skein256 bindings
 --
-module Data.CryptoHash.Skein512 (
+module Data.CryptoHash.Skein256 (
 	Ctx(..),
 
 	-- * Incremental hashing Functions
@@ -63,14 +63,14 @@ poke_hashlen ptr = do
 		sl :: Word8 -> Int -> Int
 		sl a r = (fromIntegral a) `shiftL` r
 
-foreign import ccall unsafe "skein512.h skein512_init"
-	c_skein512_init :: Ptr Ctx -> CUInt -> IO ()
+foreign import ccall unsafe "skein256.h skein256_init"
+	c_skein256_init :: Ptr Ctx -> CUInt -> IO ()
 
-foreign import ccall "skein512.h skein512_update"
-	c_skein512_update :: Ptr Ctx -> CString -> Word32 -> IO ()
+foreign import ccall "skein256.h skein256_update"
+	c_skein256_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
-foreign import ccall unsafe "skein512.h skein512_finalize"
-	c_skein512_finalize :: Ptr Ctx -> CString -> IO ()
+foreign import ccall unsafe "skein256.h skein256_finalize"
+	c_skein256_finalize :: Ptr Ctx -> CString -> IO ()
 
 allocInternal :: (Ptr Ctx -> IO a) -> IO a
 allocInternal = alloca
@@ -80,17 +80,17 @@ allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_skein512_update ptr cs (fromIntegral len))
+	unsafeUseAsCStringLen d (\(cs, len) -> c_skein256_update ptr cs (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr = do
 	digestSize <- fmap (\x -> (x + 7) `shiftR` 3) $ poke_hashlen ptr
-	allocaBytes digestSize (\cs -> c_skein512_finalize ptr cs >> B.packCStringLen (cs, digestSize))
+	allocaBytes digestSize (\cs -> c_skein256_finalize ptr cs >> B.packCStringLen (cs, digestSize))
 
 {-# NOINLINE init #-}
 -- | init a context
 init :: Int -> Ctx
-init hashlen = unsafePerformIO $ allocInternal $ \ptr -> do (c_skein512_init ptr (fromIntegral hashlen) >> peek ptr)
+init hashlen = unsafePerformIO $ allocInternal $ \ptr -> do (c_skein256_init ptr (fromIntegral hashlen) >> peek ptr)
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
@@ -106,10 +106,10 @@ finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInte
 -- | hash a strict bytestring into a digest bytestring
 hash :: Int -> ByteString -> ByteString
 hash hashlen d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein512_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
+	c_skein256_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: Int -> L.ByteString -> ByteString
 hashlazy hashlen l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein512_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+	c_skein256_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

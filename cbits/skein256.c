@@ -24,19 +24,19 @@
 
 #include <string.h>
 #include "skein.h"
-#include "skein512.h"
+#include "skein256.h"
 #include "bitfn.h"
 
-static const uint8_t K512_0[4] = { 46, 36, 19, 37, };
-static const uint8_t K512_1[4] = { 33, 27, 14, 42, };
-static const uint8_t K512_2[4] = { 17, 49, 36, 39, };
-static const uint8_t K512_3[4] = { 44,  9, 54, 56, };
-static const uint8_t K512_4[4] = { 39, 30, 34, 24, };
-static const uint8_t K512_5[4] = { 13, 50, 10, 17, };
-static const uint8_t K512_6[4] = { 25, 29, 39, 43, };
-static const uint8_t K512_7[4] = {  8, 35, 56, 22, };
+static const uint8_t K256_0[4] = { 46, 36, 19, 37, };
+static const uint8_t K256_1[4] = { 33, 27, 14, 42, };
+static const uint8_t K256_2[4] = { 17, 49, 36, 39, };
+static const uint8_t K256_3[4] = { 44,  9, 54, 56, };
+static const uint8_t K256_4[4] = { 39, 30, 34, 24, };
+static const uint8_t K256_5[4] = { 13, 50, 10, 17, };
+static const uint8_t K256_6[4] = { 25, 29, 39, 43, };
+static const uint8_t K256_7[4] = {  8, 35, 56, 22, };
 
-static inline void skein512_do_chunk(struct skein512_ctx *ctx, uint64_t *buf, uint32_t len)
+static inline void skein256_do_chunk(struct skein256_ctx *ctx, uint64_t *buf, uint32_t len)
 {
 	uint64_t x[8];
 	uint64_t ts[3];
@@ -76,15 +76,15 @@ static inline void skein512_do_chunk(struct skein512_ctx *ctx, uint64_t *buf, ui
 	x[g] += x[h]; x[h] = rol64(x[h],k[3]); x[h] ^= x[g];
 
 #define PASS(i) \
-	ROUND(0,1,2,3,4,5,6,7,K512_0); \
-	ROUND(2,1,4,7,6,5,0,3,K512_1); \
-	ROUND(4,1,6,3,0,5,2,7,K512_2); \
-	ROUND(6,1,0,7,2,5,4,3,K512_3); \
+	ROUND(0,1,2,3,4,5,6,7,K256_0); \
+	ROUND(2,1,4,7,6,5,0,3,K256_1); \
+	ROUND(4,1,6,3,0,5,2,7,K256_2); \
+	ROUND(6,1,0,7,2,5,4,3,K256_3); \
 	INJECTKEY((i*2) + 1);          \
-	ROUND(0,1,2,3,4,5,6,7,K512_4); \
-	ROUND(2,1,4,7,6,5,0,3,K512_5); \
-	ROUND(4,1,6,3,0,5,2,7,K512_6); \
-	ROUND(6,1,0,7,2,5,4,3,K512_7); \
+	ROUND(0,1,2,3,4,5,6,7,K256_4); \
+	ROUND(2,1,4,7,6,5,0,3,K256_5); \
+	ROUND(4,1,6,3,0,5,2,7,K256_6); \
+	ROUND(6,1,0,7,2,5,4,3,K256_7); \
 	INJECTKEY((i*2) + 2)
 
 	x[0] = le64_to_cpu(buf[0]) + ks[0];
@@ -121,7 +121,7 @@ static inline void skein512_do_chunk(struct skein512_ctx *ctx, uint64_t *buf, ui
         ctx->h[7] = x[7] ^ cpu_to_le64(buf[7]);
 }
 
-void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
+void skein256_init(struct skein256_ctx *ctx, uint32_t hashlen)
 {
 	uint64_t buf[8];
 	memset(ctx, 0, sizeof(*ctx));
@@ -133,12 +133,12 @@ void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
 	buf[0] = cpu_to_le64((SKEIN_VERSION << 32) | SKEIN_IDSTRING);
 	buf[1] = cpu_to_le64(hashlen);
 	buf[2] = 0; /* tree info, not implemented */
-	skein512_do_chunk(ctx, buf, 4*8);
+	skein256_do_chunk(ctx, buf, 4*8);
 
 	SET_TYPE(ctx, FLAG_FIRST | FLAG_TYPE(TYPE_MSG));
 }
 
-void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
+void skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t to_fill;
 
@@ -147,7 +147,7 @@ void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 	/* process partial buffer if there's enough data to make a block */
 	if ((ctx->bufindex & 0x3f) && len >= to_fill) {
 		memcpy(ctx->buf + ctx->bufindex, data, to_fill);
-		skein512_do_chunk(ctx, (uint64_t *) ctx->buf, 64);
+		skein256_do_chunk(ctx, (uint64_t *) ctx->buf, 64);
 		len -= to_fill;
 		data += to_fill;
 		ctx->bufindex = 0;
@@ -155,7 +155,7 @@ void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 
 	/* process as much 64-block as possible except the last one in case we finalize */
 	for (; len > 64; len -= 64, data += 64)
-		skein512_do_chunk(ctx, (uint64_t *) data, 64);
+		skein256_do_chunk(ctx, (uint64_t *) data, 64);
 
 	/* append data into buf */
 	if (len) {
@@ -164,7 +164,7 @@ void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 	}
 }
 
-void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
+void skein256_finalize(struct skein256_ctx *ctx, uint8_t *out)
 {
 	uint32_t outsize;
 	uint64_t *p = (uint64_t *) out;
@@ -175,7 +175,7 @@ void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 	/* if buf is not complete pad with 0 bytes */
 	if (ctx->bufindex < 64)
 		memset(ctx->buf + ctx->bufindex, '\0', 64 - ctx->bufindex);
-	skein512_do_chunk(ctx, (uint64_t *) ctx->buf, ctx->bufindex);
+	skein256_do_chunk(ctx, (uint64_t *) ctx->buf, ctx->bufindex);
 
 	memset(ctx->buf, '\0', 64);
 
@@ -189,7 +189,7 @@ void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 	for (i = 0; i*64 < outsize; i++) {
 		*((uint64_t *) ctx->buf) = cpu_to_le64(i);
 		SET_TYPE(ctx, FLAG_FIRST | FLAG_FINAL | FLAG_TYPE(TYPE_OUT));
-		skein512_do_chunk(ctx, (uint64_t *) ctx->buf, sizeof(uint64_t));
+		skein256_do_chunk(ctx, (uint64_t *) ctx->buf, sizeof(uint64_t));
 
 		n = outsize - i * 64;
 		if (n >= 64) n = 64;

@@ -21,14 +21,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef CRYPTOHASH_SKEIN512_H
-#define CRYPTOHASH_SKEIN512_H
+#ifndef CRYPTOHASH_SKEIN256_H
+#define CRYPTOHASH_SKEIN256_H
 
 #include <stdint.h>
 
-struct skein512_ctx
+struct skein256_ctx
 {
-	uint32_t hashlen; /* in bits, typically 384, 512 */
+	uint32_t hashlen;
 	uint32_t bufindex;
 	uint8_t  buf[64];
 	uint64_t h[8];
@@ -36,10 +36,10 @@ struct skein512_ctx
 	uint64_t t1;
 };
 
-#define SKEIN512_CTX_SIZE		sizeof(struct skein512_ctx)
+#define SKEIN256_CTX_SIZE		sizeof(struct skein256_ctx)
 
-void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen);
-void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len);
-void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out);
+void skein256_init(struct skein256_ctx *ctx, uint32_t hashlen);
+void skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len);
+void skein256_finalize(struct skein256_ctx *ctx, uint8_t *out);
 
 #endif
