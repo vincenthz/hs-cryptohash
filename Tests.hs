@@ -13,6 +13,7 @@ import qualified Data.CryptoHash.SHA384 as SHA384
 import qualified Data.CryptoHash.SHA512 as SHA512
 import qualified Data.CryptoHash.RIPEMD160 as RIPEMD160
 import qualified Data.CryptoHash.Tiger as Tiger
+import qualified Data.CryptoHash.Skein256 as Skein256
 import qualified Data.CryptoHash.Skein512 as Skein512
 
 v0 = ""
@@ -37,6 +38,7 @@ sha512Hash = HashFct { fctHash = SHA512.hash, fctInc = hashinc SHA512.init SHA51
 ripemd160Hash = HashFct { fctHash = RIPEMD160.hash, fctInc = hashinc RIPEMD160.init RIPEMD160.update RIPEMD160.finalize }
 tigerHash = HashFct { fctHash = Tiger.hash, fctInc = hashinc Tiger.init Tiger.update Tiger.finalize }
 
+skein256Hash x = HashFct { fctHash = Skein256.hash x, fctInc = hashinc (Skein256.init x) Skein256.update Skein256.finalize }
 skein512Hash x = HashFct { fctHash = Skein512.hash x, fctInc = hashinc (Skein512.init x) Skein512.update Skein512.finalize }
 
 results :: [ (String, HashFct, [String]) ]
@@ -81,6 +83,14 @@ results = [
 		"3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3",
 		"6d12a41e72e644f017b6f0e2f7b44c6285f06dd5d2c5b075",
 		"a8f04b0f7201a0d728101c9d26525b31764a3493fcd8458f" ])
+	, ("Skein256-160", skein256Hash 160, [
+		"2ab89f14cfb3a5cb4655379386c42df7a45ccaf7",
+		"c86ef8411dc1deb008a3c175091691b74643631e",
+		"2775e79484bc087b58eb78d977c143a3029471be" ])
+	, ("Skein256-256", skein256Hash 256, [
+		"0b04103b828cddaebcf592ac845ecafd5887f61230a755406d38d85376e1ae08",
+		"a7e63c4dc73d0cb77184e319ebb6f69b73bfc8b945c1b371fafd01223a2ade1c",
+		"2174ca46353601a53826b430b52e76fca51bb0419f7a20ac7ffd53c4c448fa51" ])
 	, ("Skein512-160", skein512Hash 160, [
 		"b034bcc065b01b0c486159b3dba3e03aa52fdd70",
 		"9709e7d913bc3eee240e1f302840a0da9d9acc48",
