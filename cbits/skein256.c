@@ -126,8 +126,13 @@ void skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len)
 
 	to_fill = 32 - ctx->bufindex;
 
+	if (ctx->bufindex == 32) {
+		skein256_do_chunk(ctx, (uint64_t *) ctx->buf, 32);
+		ctx->bufindex = 0;
+	}
+
 	/* process partial buffer if there's enough data to make a block */
-	if ((ctx->bufindex & 0x1f) && len >= to_fill) {
+	if (ctx->bufindex && len >= to_fill) {
 		memcpy(ctx->buf + ctx->bufindex, data, to_fill);
 		skein256_do_chunk(ctx, (uint64_t *) ctx->buf, 32);
 		len -= to_fill;

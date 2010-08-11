@@ -144,8 +144,13 @@ void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 
 	to_fill = 64 - ctx->bufindex;
 
+	if (ctx->bufindex == 64) {
+		skein512_do_chunk(ctx, (uint64_t *) ctx->buf, 64);
+		ctx->bufindex = 0;
+	}
+
 	/* process partial buffer if there's enough data to make a block */
-	if ((ctx->bufindex & 0x3f) && len >= to_fill) {
+	if (ctx->bufindex && len >= to_fill) {
 		memcpy(ctx->buf + ctx->bufindex, data, to_fill);
 		skein512_do_chunk(ctx, (uint64_t *) ctx->buf, 64);
 		len -= to_fill;
