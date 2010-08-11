@@ -126,7 +126,7 @@ void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
 	uint64_t buf[8];
 	memset(ctx, 0, sizeof(*ctx));
 
-	ctx->hashlen = cpu_to_le64(hashlen);
+	ctx->hashlen = hashlen;
 	SET_TYPE(ctx, FLAG_FIRST | FLAG_FINAL | FLAG_TYPE(TYPE_CFG));
 	
 	memset(buf, '\0', sizeof(buf));
@@ -180,7 +180,7 @@ void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 	memset(ctx->buf, '\0', 64);
 
 	/* make sure we have a 8 bit rounded value */
-	outsize = (le64_to_cpu(ctx->hashlen) + 7) >> 3;
+	outsize = (ctx->hashlen + 7) >> 3;
 
 	/* backup h[0--7] */
 	for (j = 0; j < 8; j++)

@@ -108,7 +108,7 @@ void skein256_init(struct skein256_ctx *ctx, uint32_t hashlen)
 	uint64_t buf[4];
 	memset(ctx, 0, sizeof(*ctx));
 
-	ctx->hashlen = cpu_to_le64(hashlen);
+	ctx->hashlen = hashlen;
 	SET_TYPE(ctx, FLAG_FIRST | FLAG_FINAL | FLAG_TYPE(TYPE_CFG));
 	
 	memset(buf, '\0', sizeof(buf));
@@ -162,7 +162,7 @@ void skein256_finalize(struct skein256_ctx *ctx, uint8_t *out)
 	memset(ctx->buf, '\0', 32);
 
 	/* make sure we have a 8 bit rounded value */
-	outsize = (le64_to_cpu(ctx->hashlen) + 7) >> 3;
+	outsize = (ctx->hashlen + 7) >> 3;
 
 	/* backup h[0--4] */
 	for (j = 0; j < 4; j++)
