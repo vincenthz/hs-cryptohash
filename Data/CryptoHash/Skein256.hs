@@ -29,8 +29,8 @@ import Foreign.C.Types
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen, unsafeIndex)
-import Data.ByteString.Internal (create)
+import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
+import Data.ByteString.Internal (create, memcpy)
 
 data Ctx = Ctx !ByteString
 
@@ -40,28 +40,15 @@ sizeCtx = 100
 instance Storable Ctx where
 	sizeOf _    = sizeCtx
 	alignment _ = 16
-	poke ptr (Ctx b) = do
-		mapM_ (\i -> poke (ptr `plusPtr` i) (unsafeIndex b i)) [0..(sizeCtx-1)]
+	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
 
-	peek ptr = do
-		b <- create sizeCtx (\bptr -> do
-			mapM_ (\i -> do
-				f <- peek (ptr `plusPtr` i) :: IO Word8
-				poke (bptr `plusPtr` i) f
-				) [0..(sizeCtx-1)]
-			)
-		return $ Ctx b
+	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
 
 poke_hashlen :: Ptr Ctx -> IO Int
 poke_hashlen ptr = do
-	a <- peek (ptr `plusPtr` 3)
-	b <- peek (ptr `plusPtr` 2)
-	c <- peek (ptr `plusPtr` 1)
-	d <- peek (ptr `plusPtr` 0)
-	return (sl a 24 .|. sl b 16 .|. sl c 8 .|. sl d 0)
-	where
-		sl :: Word8 -> Int -> Int
-		sl a r = (fromIntegral a) `shiftL` r
+	let iptr = castPtr ptr :: Ptr CUInt
+	a <- peek iptr
+	return $ fromIntegral a
 
 foreign import ccall unsafe "skein256.h skein256_init"
 	c_skein256_init :: Ptr Ctx -> CUInt -> IO ()

@@ -28,10 +28,10 @@ import Foreign.C.String
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen, unsafeIndex)
-import Data.ByteString.Internal (create)
+import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
+import Data.ByteString.Internal (create, memcpy)
 
-data Ctx = Ctx ByteString
+data Ctx = Ctx !ByteString
 
 digestSize :: Int
 sizeCtx :: Int
@@ -42,14 +42,9 @@ sizeCtx = 96
 instance Storable Ctx where
 	sizeOf _    = sizeCtx
 	alignment _ = 16
-	poke ptr (Ctx b) = mapM_ (\i -> poke (ptr `plusPtr` i) (unsafeIndex b i)) [0..(sizeCtx-1)]
+	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
 
-	peek ptr = do
-		b <- create sizeCtx (\bptr -> mapM_ (\i -> do
-			f <- peek (ptr `plusPtr` i) :: IO Word8
-			poke (bptr `plusPtr` i) f
-			) [0..(sizeCtx-1)])
-		return $ Ctx $! b
+	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
 
 foreign import ccall unsafe "md2.h md2_init"
 	c_md2_init :: Ptr Ctx -> IO ()
