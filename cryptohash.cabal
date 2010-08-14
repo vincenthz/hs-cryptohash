@@ -1,5 +1,5 @@
 Name:                cryptohash
-Version:             0.5
+Version:             0.5.1
 Description:
     A collection of crypto hashes, with a practical incremental and one-pass, pure APIs,
     with performance close to the fastest implementations available in others languages.
@@ -10,7 +10,7 @@ License:             BSD3
 License-file:        LICENSE
 Author:              Vincent Hanquez
 Maintainer:          vincent@snarc.org
-Synopsis:            collection of crypto hashes, fast, pure and pratical
+Synopsis:            collection of crypto hashes, fast, pure and practical
 Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.6
