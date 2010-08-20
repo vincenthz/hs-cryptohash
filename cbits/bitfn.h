@@ -158,8 +158,13 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
 }
 #endif
 
+#ifdef __MINGW32__
+  # define LITTLE_ENDIAN 1234
+  # define BYTE_ORDER    LITTLE_ENDIAN
+#else
+  # include <endian.h>
+#endif
 /* big endian to cpu */
-#include <endian.h>
 #if LITTLE_ENDIAN == BYTE_ORDER
 
 # define be32_to_cpu(a) swap32(a)
