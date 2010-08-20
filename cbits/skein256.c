@@ -42,7 +42,7 @@ static inline void skein256_do_chunk(struct skein256_ctx *ctx, uint64_t *buf, ui
 	uint64_t ts[3];
 	uint64_t ks[4+1];
 
-	ks[4] = 0x5555555555555555;
+	ks[4] = 0x5555555555555555ULL;
 	ks[0] = ctx->h[0]; ks[4] ^= ctx->h[0];
 	ks[1] = ctx->h[1]; ks[4] ^= ctx->h[1];
 	ks[2] = ctx->h[2]; ks[4] ^= ctx->h[2];
