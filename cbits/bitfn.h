@@ -161,7 +161,9 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
 #ifdef __MINGW32__
   # define LITTLE_ENDIAN 1234
   # define BYTE_ORDER    LITTLE_ENDIAN
-#elif defined(MACOSX)
+#elif defined(__FreeBSD__)
+  # include <sys/endian.h>
+#elif defined(__APPLE__)
   # include <machine/endian.h>
 #else
   # include <endian.h>
