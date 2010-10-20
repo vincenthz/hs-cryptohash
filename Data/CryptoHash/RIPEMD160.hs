@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 -- |
 -- Module      : Data.CryptoHash.RIPEMD160
 -- License     : BSD-style
@@ -7,7 +5,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- A module containing RIPEMD160 bindings
+-- compatibility module for RIPEMD160. use Crypto.Hash.RIPEMD160 instead.
 --
 module Data.CryptoHash.RIPEMD160 (
 	Ctx(..),
@@ -22,76 +20,28 @@ module Data.CryptoHash.RIPEMD160 (
 	hashlazy   -- :: ByteString -> ByteString
 	) where
 
-import Prelude hiding (init)
-import Foreign
-import Foreign.C.String
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
+import Prelude ()
+import Crypto.Hash.RIPEMD160 (Ctx(..))
+import qualified Crypto.Hash.RIPEMD160 as R
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, memcpy)
+import qualified Data.ByteString.Lazy as L (ByteString)
 
-data Ctx = Ctx !ByteString
-
-digestSize :: Int
-sizeCtx :: Int
-
-digestSize = 20
-sizeCtx = 128
-
-instance Storable Ctx where
-	sizeOf _    = sizeCtx
-	alignment _ = 16
-	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
-
-	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
-
-foreign import ccall unsafe "ripemd.h ripemd160_init"
-	c_ripemd160_init :: Ptr Ctx -> IO ()
-
-foreign import ccall "ripemd.h ripemd160_update"
-	c_ripemd160_update :: Ptr Ctx -> CString -> Word32 -> IO ()
-
-foreign import ccall unsafe "ripemd.h ripemd160_finalize"
-	c_ripemd160_finalize :: Ptr Ctx -> CString -> IO ()
-
-allocInternal :: (Ptr Ctx -> IO a) -> IO a
-allocInternal = alloca
-
-allocInternalFrom :: Ctx -> (Ptr Ctx -> IO a) -> IO a
-allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
-
-updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
-updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_ripemd160_update ptr cs (fromIntegral len))
-
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr =
-	allocaBytes digestSize (\cs -> c_ripemd160_finalize ptr cs >> B.packCStringLen (cs, digestSize))
-
-{-# NOINLINE init #-}
--- | init a context
+{-# DEPRECATED init "use crypto.hash.RIPEMD160" #-}
 init :: Ctx
-init = unsafePerformIO $ allocInternal $ \ptr -> do (c_ripemd160_init ptr >> peek ptr)
+init = R.init
 
-{-# NOINLINE update #-}
--- | update a context with a bytestring
+{-# DEPRECATED update "use crypto.hash.RIPEMD160" #-}
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do updateInternalIO ptr d >> peek ptr
+update = R.update
 
-{-# NOINLINE finalize #-}
--- | finalize the context into a digest bytestring
+{-# DEPRECATED finalize "use crypto.hash.RIPEMD160" #-}
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInternalIO ptr
+finalize = R.finalize
 
-{-# NOINLINE hash #-}
--- | hash a strict bytestring into a digest bytestring
+{-# DEPRECATED hash "use crypto.hash.RIPEMD160" #-}
 hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_ripemd160_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
+hash = R.hash
 
-{-# NOINLINE hashlazy #-}
--- | hash a lazy bytestring into a digest bytestring
+{-# DEPRECATED hashlazy "use crypto.hash.RIPEMD160" #-}
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_ripemd160_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+hashlazy = R.hashlazy

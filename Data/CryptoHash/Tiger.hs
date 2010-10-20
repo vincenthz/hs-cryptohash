@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 -- |
 -- Module      : Data.CryptoHash.Tiger
 -- License     : BSD-style
@@ -7,7 +5,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- A module containing Tiger bindings
+-- compatibility module for Tiger. use Crypto.Hash.Tiger instead.
 --
 module Data.CryptoHash.Tiger (
 	Ctx(..),
@@ -22,76 +20,28 @@ module Data.CryptoHash.Tiger (
 	hashlazy   -- :: ByteString -> ByteString
 	) where
 
-import Prelude hiding (init)
-import Foreign
-import Foreign.C.String
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
+import Prelude ()
+import Crypto.Hash.Tiger (Ctx(..))
+import qualified Crypto.Hash.Tiger as R
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, memcpy)
+import qualified Data.ByteString.Lazy as L (ByteString)
 
-data Ctx = Ctx !ByteString
-
-digestSize :: Int
-sizeCtx :: Int
-
-digestSize = 24
-sizeCtx = 96
-
-instance Storable Ctx where
-	sizeOf _    = sizeCtx
-	alignment _ = 16
-	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
-
-	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
-
-foreign import ccall unsafe "tiger.h tiger_init"
-	c_tiger_init :: Ptr Ctx -> IO ()
-
-foreign import ccall "tiger.h tiger_update"
-	c_tiger_update :: Ptr Ctx -> CString -> Word32 -> IO ()
-
-foreign import ccall unsafe "tiger.h tiger_finalize"
-	c_tiger_finalize :: Ptr Ctx -> CString -> IO ()
-
-allocInternal :: (Ptr Ctx -> IO a) -> IO a
-allocInternal = alloca
-
-allocInternalFrom :: Ctx -> (Ptr Ctx -> IO a) -> IO a
-allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
-
-updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
-updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_tiger_update ptr cs (fromIntegral len))
-
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr =
-	allocaBytes digestSize (\cs -> c_tiger_finalize ptr cs >> B.packCStringLen (cs, digestSize))
-
-{-# NOINLINE init #-}
--- | init a context
+{-# DEPRECATED init "use crypto.hash.Tiger" #-}
 init :: Ctx
-init = unsafePerformIO $ allocInternal $ \ptr -> do (c_tiger_init ptr >> peek ptr)
+init = R.init
 
-{-# NOINLINE update #-}
--- | update a context with a bytestring
+{-# DEPRECATED update "use crypto.hash.Tiger" #-}
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do updateInternalIO ptr d >> peek ptr
+update = R.update
 
-{-# NOINLINE finalize #-}
--- | finalize the context into a digest bytestring
+{-# DEPRECATED finalize "use crypto.hash.Tiger" #-}
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInternalIO ptr
+finalize = R.finalize
 
-{-# NOINLINE hash #-}
--- | hash a strict bytestring into a digest bytestring
+{-# DEPRECATED hash "use crypto.hash.Tiger" #-}
 hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_tiger_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
+hash = R.hash
 
-{-# NOINLINE hashlazy #-}
--- | hash a lazy bytestring into a digest bytestring
+{-# DEPRECATED hashlazy "use crypto.hash.Tiger" #-}
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_tiger_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+hashlazy = R.hashlazy

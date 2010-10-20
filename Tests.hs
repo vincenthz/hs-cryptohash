@@ -3,18 +3,18 @@ import Data.Char
 import Data.Bits
 import Data.Word
 import qualified Data.ByteString as B
-import qualified Data.CryptoHash.MD2 as MD2
-import qualified Data.CryptoHash.MD4 as MD4
-import qualified Data.CryptoHash.MD5 as MD5
-import qualified Data.CryptoHash.SHA1 as SHA1
-import qualified Data.CryptoHash.SHA224 as SHA224
-import qualified Data.CryptoHash.SHA256 as SHA256
-import qualified Data.CryptoHash.SHA384 as SHA384
-import qualified Data.CryptoHash.SHA512 as SHA512
-import qualified Data.CryptoHash.RIPEMD160 as RIPEMD160
-import qualified Data.CryptoHash.Tiger as Tiger
-import qualified Data.CryptoHash.Skein256 as Skein256
-import qualified Data.CryptoHash.Skein512 as Skein512
+import qualified Crypto.Hash.MD2 as MD2
+import qualified Crypto.Hash.MD4 as MD4
+import qualified Crypto.Hash.MD5 as MD5
+import qualified Crypto.Hash.SHA1 as SHA1
+import qualified Crypto.Hash.SHA224 as SHA224
+import qualified Crypto.Hash.SHA256 as SHA256
+import qualified Crypto.Hash.SHA384 as SHA384
+import qualified Crypto.Hash.SHA512 as SHA512
+import qualified Crypto.Hash.RIPEMD160 as RIPEMD160
+import qualified Crypto.Hash.Tiger as Tiger
+import qualified Crypto.Hash.Skein256 as Skein256
+import qualified Crypto.Hash.Skein512 as Skein512
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"

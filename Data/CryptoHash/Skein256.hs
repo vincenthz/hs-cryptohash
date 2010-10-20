@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 -- |
 -- Module      : Data.CryptoHash.Skein256
 -- License     : BSD-style
@@ -7,7 +5,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- A module containing Skein256 bindings
+-- compatibility module for Skein256. use Crypto.Hash.Skein256 instead.
 --
 module Data.CryptoHash.Skein256 (
 	Ctx(..),
@@ -22,81 +20,28 @@ module Data.CryptoHash.Skein256 (
 	hashlazy   -- :: Int -> ByteString -> ByteString
 	) where
 
-import Prelude hiding (init)
-import Foreign
-import Foreign.C.String
-import Foreign.C.Types
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
+import Prelude (Int)
+import Crypto.Hash.Skein256 (Ctx(..))
+import qualified Crypto.Hash.Skein256 as R
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, memcpy)
+import qualified Data.ByteString.Lazy as L (ByteString)
 
-data Ctx = Ctx !ByteString
-
-sizeCtx :: Int
-sizeCtx = 100
-
-instance Storable Ctx where
-	sizeOf _    = sizeCtx
-	alignment _ = 16
-	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
-
-	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
-
-poke_hashlen :: Ptr Ctx -> IO Int
-poke_hashlen ptr = do
-	let iptr = castPtr ptr :: Ptr CUInt
-	a <- peek iptr
-	return $ fromIntegral a
-
-foreign import ccall unsafe "skein256.h skein256_init"
-	c_skein256_init :: Ptr Ctx -> CUInt -> IO ()
-
-foreign import ccall "skein256.h skein256_update"
-	c_skein256_update :: Ptr Ctx -> CString -> Word32 -> IO ()
-
-foreign import ccall unsafe "skein256.h skein256_finalize"
-	c_skein256_finalize :: Ptr Ctx -> CString -> IO ()
-
-allocInternal :: (Ptr Ctx -> IO a) -> IO a
-allocInternal = alloca
-
-allocInternalFrom :: Ctx -> (Ptr Ctx -> IO a) -> IO a
-allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
-
-updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
-updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_skein256_update ptr cs (fromIntegral len))
-
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr = do
-	digestSize <- fmap (\x -> (x + 7) `shiftR` 3) $ poke_hashlen ptr
-	allocaBytes digestSize (\cs -> c_skein256_finalize ptr cs >> B.packCStringLen (cs, digestSize))
-
-{-# NOINLINE init #-}
--- | init a context
+{-# DEPRECATED init "use crypto.hash.Skein256" #-}
 init :: Int -> Ctx
-init hashlen = unsafePerformIO $ allocInternal $ \ptr -> do (c_skein256_init ptr (fromIntegral hashlen) >> peek ptr)
+init = R.init
 
-{-# NOINLINE update #-}
--- | update a context with a bytestring
+{-# DEPRECATED update "use crypto.hash.Skein256" #-}
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do updateInternalIO ptr d >> peek ptr
+update = R.update
 
-{-# NOINLINE finalize #-}
--- | finalize the context into a digest bytestring
+{-# DEPRECATED finalize "use crypto.hash.Skein256" #-}
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInternalIO ptr
+finalize = R.finalize
 
-{-# NOINLINE hash #-}
--- | hash a strict bytestring into a digest bytestring
+{-# DEPRECATED hash "use crypto.hash.Skein256" #-}
 hash :: Int -> ByteString -> ByteString
-hash hashlen d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein256_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
+hash = R.hash
 
-{-# NOINLINE hashlazy #-}
--- | hash a lazy bytestring into a digest bytestring
+{-# DEPRECATED hashlazy "use crypto.hash.Skein256" #-}
 hashlazy :: Int -> L.ByteString -> ByteString
-hashlazy hashlen l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein256_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+hashlazy = R.hashlazy

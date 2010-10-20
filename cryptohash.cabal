@@ -30,7 +30,19 @@ Flag test
 Library
   Build-Depends:     base >= 3 && < 5, bytestring
   Extensions:        ForeignFunctionInterface
-  Exposed-modules:   Data.CryptoHash.SHA1
+  Exposed-modules:   Crypto.Hash.SHA1
+                     Crypto.Hash.SHA224
+                     Crypto.Hash.SHA256
+                     Crypto.Hash.SHA384
+                     Crypto.Hash.SHA512
+                     Crypto.Hash.MD2
+                     Crypto.Hash.MD4
+                     Crypto.Hash.MD5
+                     Crypto.Hash.RIPEMD160
+                     Crypto.Hash.Skein256
+                     Crypto.Hash.Skein512
+                     Crypto.Hash.Tiger
+                     Data.CryptoHash.SHA1
                      Data.CryptoHash.SHA224
                      Data.CryptoHash.SHA256
                      Data.CryptoHash.SHA384
