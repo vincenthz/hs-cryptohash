@@ -82,7 +82,7 @@ Executable           Tests
                      cbits/tiger.c
   if flag(test)
     Buildable:       True
-    Build-depends:   base >= 3 && < 5, HUnit, bytestring
+    Build-depends:   base >= 4, HUnit, bytestring
   else
     Buildable:       False
 
