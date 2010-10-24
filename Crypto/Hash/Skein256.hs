@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Crypto.Hash.Skein256
@@ -9,17 +9,18 @@
 --
 -- A module containing Skein256 bindings
 --
-module Crypto.Hash.Skein256 (
-	Ctx(..),
+module Crypto.Hash.Skein256
+	( Ctx(..)
+	, Skein256
 
 	-- * Incremental hashing Functions
-	init,      -- :: Int -> Ctx
-	update,    -- :: Ctx -> ByteString -> Ctx
-	finalize,  -- :: Ctx -> ByteString
+	, init     -- :: Int -> Ctx
+	, update   -- :: Ctx -> ByteString -> Ctx
+	, finalize -- :: Ctx -> ByteString
 
 	-- * Single Pass hashing
-	hash,      -- :: Int -> ByteString -> ByteString
-	hashlazy   -- :: Int -> ByteString -> ByteString
+	, hash     -- :: Int -> ByteString -> ByteString
+	, hashlazy -- :: Int -> ByteString -> ByteString
 	) where
 
 import Prelude hiding (init)
@@ -32,7 +33,31 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, memcpy)
 
+#ifdef HAVE_CRYPTOAPI
+
+import Control.Monad (liftM)
+import Data.Serialize (Serialize(..))
+import Data.Serialize.Get (getByteString)
+import Data.Serialize.Put (putByteString)
+import Data.Tagged (Tagged(..))
+import qualified Crypto.Classes as C (Hash(..))
+
+instance C.Hash Ctx Skein256 where
+	outputLength    = Tagged (32 * 8)
+	blockLength     = Tagged (32 * 8)
+	initialCtx      = init (32 * 8)
+	updateCtx       = update
+	finalize ctx bs = Digest . finalize $ update ctx bs
+
+instance Serialize Skein256 where
+	get            = liftM Digest (getByteString 32)
+	put (Digest d) = putByteString d
+
+#endif
+
 data Ctx = Ctx !ByteString
+data Skein256 = Digest !ByteString
+	deriving (Eq,Ord,Show)
 
 sizeCtx :: Int
 sizeCtx = 100

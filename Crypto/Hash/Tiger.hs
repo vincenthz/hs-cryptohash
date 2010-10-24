@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Crypto.Hash.Tiger
@@ -9,17 +9,18 @@
 --
 -- A module containing Tiger bindings
 --
-module Crypto.Hash.Tiger (
-	Ctx(..),
+module Crypto.Hash.Tiger
+	( Ctx(..)
+	, Tiger
 
 	-- * Incremental hashing Functions
-	init,      -- :: Ctx
-	update,    -- :: Ctx -> ByteString -> Ctx
-	finalize,  -- :: Ctx -> ByteString
+	, init     -- :: Ctx
+	, update   -- :: Ctx -> ByteString -> Ctx
+	, finalize -- :: Ctx -> ByteString
 
 	-- * Single Pass hashing
-	hash,      -- :: ByteString -> ByteString
-	hashlazy   -- :: ByteString -> ByteString
+	, hash     -- :: ByteString -> ByteString
+	, hashlazy -- :: ByteString -> ByteString
 	) where
 
 import Prelude hiding (init)
@@ -31,11 +32,33 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, memcpy)
 
+#ifdef HAVE_CRYPTOAPI
+
+import Control.Monad (liftM)
+import Data.Serialize (Serialize(..))
+import Data.Serialize.Get (getByteString)
+import Data.Serialize.Put (putByteString)
+import Data.Tagged (Tagged(..))
+import qualified Crypto.Classes as C (Hash(..))
+
+instance C.Hash Ctx Tiger where
+	outputLength    = Tagged (24 * 8)
+	blockLength     = Tagged (64 * 8)
+	initialCtx      = init
+	updateCtx       = update
+	finalize ctx bs = Digest . finalize $ update ctx bs
+
+instance Serialize Tiger where
+	get            = liftM Digest (getByteString digestSize)
+	put (Digest d) = putByteString d
+
+#endif
+
 data Ctx = Ctx !ByteString
+data Tiger = Digest !ByteString
+	deriving (Eq,Ord,Show)
 
-digestSize :: Int
-sizeCtx :: Int
-
+digestSize, sizeCtx :: Int
 digestSize = 24
 sizeCtx = 96
 

@@ -27,6 +27,10 @@ Flag test
   Description:       Build unit test
   Default:           False
 
+Flag cryptoapi
+  Description:       Defines crypto-api instances
+  Default:           False
+
 Library
   Build-Depends:     base >= 3 && < 5, bytestring
   Extensions:        ForeignFunctionInterface
@@ -69,7 +73,7 @@ Library
 
 Executable           Tests
   Main-Is:           Tests.hs
-  Extensions:        ForeignFunctionInterface
+  Extensions:        ForeignFunctionInterface, CPP
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
@@ -85,6 +89,9 @@ Executable           Tests
     Build-depends:   base >= 4, HUnit, bytestring
   else
     Buildable:       False
+  if flag(cryptoapi)
+    Build-depends:   crypto-api >= 0.1, tagged >= 0.1, cereal >= 0.2
+    cpp-options:     -DHAVE_CRYPTOAPI
 
 source-repository head
   type:     git
