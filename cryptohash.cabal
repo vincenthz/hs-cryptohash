@@ -30,7 +30,7 @@ Flag test
 
 Flag cryptoapi
   Description:       Defines crypto-api instances
-  Default:           False
+  Default:           True
 
 Library
   Build-Depends:     base >= 4, bytestring
