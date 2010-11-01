@@ -34,6 +34,9 @@ Flag cryptoapi
 
 Library
   Build-Depends:     base >= 3 && < 5, bytestring
+  if flag(cryptoapi)
+    Build-depends:   crypto-api >= 0.1, tagged >= 0.1, cereal >= 0.2
+    cpp-options:     -DHAVE_CRYPTOAPI
   Extensions:        ForeignFunctionInterface
   Exposed-modules:   Crypto.Hash.SHA1
                      Crypto.Hash.SHA224
