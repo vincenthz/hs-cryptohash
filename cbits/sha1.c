@@ -50,31 +50,17 @@ void sha1_init(struct sha1_ctx *ctx)
 #define R(a, b, c, d, e, f, k, w)  \
 	e += rol32(a, 5) + f(b, c, d) + k + w; b = rol32(b, 30)
 
-#if (defined(__arm__))
-#define M(i)  (w[i])
-#else
 #define M(i)  (w[i & 0x0f] = rol32(w[i & 0x0f] ^ w[(i - 14) & 0x0f] \
               ^ w[(i - 8) & 0x0f] ^ w[(i - 3) & 0x0f], 1))
-#endif
 
 static inline void sha1_do_chunk(struct sha1_ctx *ctx, uint32_t *buf)
 {
 	uint32_t a, b, c, d, e;
-#if (defined(__arm__))
-	uint32_t i;
-	uint32_t w[80];
-	for (i = 0; i < 16; i++)
-		w[i] = be32_to_cpu(buf[i]);
-	for (; i < 80; i++)
-		w[i] = rol32(w[i & 0x0f] ^ w[(i - 14) & 0x0f] ^
-		             w[(i - 8) % 0x0f] ^ w[(i - 3) & 0x0f], 1);
-#else
 	uint32_t w[16];
 #define CPY(i)	w[i] = be32_to_cpu(buf[i])
 	CPY(0); CPY(1); CPY(2); CPY(3); CPY(4); CPY(5); CPY(6); CPY(7);
 	CPY(8); CPY(9); CPY(10); CPY(11); CPY(12); CPY(13); CPY(14); CPY(15);
 #undef CPY
-#endif
 
 	a = ctx->h[0]; b = ctx->h[1]; c = ctx->h[2]; d = ctx->h[3]; e = ctx->h[4];
 
