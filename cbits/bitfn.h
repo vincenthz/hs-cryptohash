@@ -163,7 +163,11 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
   # define BYTE_ORDER    LITTLE_ENDIAN
 #elif defined(__FreeBSD__)
   # include <sys/endian.h>
+#elif defined(__OpenBSD__)
+  # include <sys/types.h>
 #elif defined(__APPLE__)
+  # include <machine/endian.h>
+#elif defined( BSD ) && ( BSD >= 199103 )
   # include <machine/endian.h>
 #else
   # include <endian.h>
