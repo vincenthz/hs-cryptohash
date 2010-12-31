@@ -30,7 +30,7 @@
 /**********************************************************/
 # if (defined(__i386__))
 #  define ARCH_HAS_SWAP32
-static inline uint32_t swap32(uint32_t a)
+static inline uint32_t bitfn_swap32(uint32_t a)
 {
 	asm ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
@@ -38,7 +38,7 @@ static inline uint32_t swap32(uint32_t a)
 /**********************************************************/
 # elif (defined(__arm__))
 #  define ARCH_HAS_SWAP32
-static inline uint32_t swap32(uint32_t a)
+static inline uint32_t bitfn_swap32(uint32_t a)
 {
 	uint32_t tmp = a;
 	asm volatile ("eor %1, %0, %0, ror #16\n"
@@ -52,13 +52,13 @@ static inline uint32_t swap32(uint32_t a)
 # elif defined(__x86_64__)
 #  define ARCH_HAS_SWAP32
 #  define ARCH_HAS_SWAP64
-static inline uint32_t swap32(uint32_t a)
+static inline uint32_t bitfn_swap32(uint32_t a)
 {
 	asm ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
 }
 
-static inline uint64_t swap64(uint64_t a)
+static inline uint64_t bitfn_swap64(uint64_t a)
 {
 	asm ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
@@ -97,7 +97,7 @@ static inline uint64_t ror64(uint64_t word, uint32_t shift)
 #endif
 
 #ifndef ARCH_HAS_SWAP32
-static inline uint32_t swap32(uint32_t a)
+static inline uint32_t bitfn_swap32(uint32_t a)
 {
 	return (a << 24) | ((a & 0xff00) << 8) | ((a >> 8) & 0xff00) | (a >> 24);
 }
@@ -107,15 +107,15 @@ static inline uint32_t swap32(uint32_t a)
 static inline void array_swap32(uint32_t *d, uint32_t *s, uint32_t nb)
 {
 	while (nb--)
-		*d++ = swap32(*s++);
+		*d++ = bitfn_swap32(*s++);
 }
 #endif
 
 #ifndef ARCH_HAS_SWAP64
-static inline uint64_t swap64(uint64_t a)
+static inline uint64_t bitfn_swap64(uint64_t a)
 {
-	return ((uint64_t) swap32((uint32_t) (a >> 32))) |
-	       (((uint64_t) swap32((uint32_t) a)) << 32);
+	return ((uint64_t) bitfn_swap32((uint32_t) (a >> 32))) |
+	       (((uint64_t) bitfn_swap32((uint32_t) a)) << 32);
 }
 #endif
 
@@ -123,7 +123,7 @@ static inline uint64_t swap64(uint64_t a)
 static inline void array_swap64(uint64_t *d, uint64_t *s, uint32_t nb)
 {
 	while (nb--)
-		*d++ = swap64(*s++);
+		*d++ = bitfn_swap64(*s++);
 }
 #endif
 
@@ -175,12 +175,12 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
 /* big endian to cpu */
 #if LITTLE_ENDIAN == BYTE_ORDER
 
-# define be32_to_cpu(a) swap32(a)
-# define cpu_to_be32(a) swap32(a)
+# define be32_to_cpu(a) bitfn_swap32(a)
+# define cpu_to_be32(a) bitfn_swap32(a)
 # define le32_to_cpu(a) (a)
 # define cpu_to_le32(a) (a)
-# define be64_to_cpu(a) swap64(a)
-# define cpu_to_be64(a) swap64(a)
+# define be64_to_cpu(a) bitfn_swap64(a)
+# define cpu_to_be64(a) bitfn_swap64(a)
 # define le64_to_cpu(a) (a)
 # define cpu_to_le64(a) (a)
 
@@ -205,10 +205,10 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
 # define cpu_to_be32(a) (a)
 # define be64_to_cpu(a) (a)
 # define cpu_to_be64(a) (a)
-# define le64_to_cpu(a) swap64(a)
-# define cpu_to_le64(a) swap64(a)
-# define le32_to_cpu(a) swap32(a)
-# define cpu_to_le32(a) swap32(a)
+# define le64_to_cpu(a) bitfn_swap64(a)
+# define cpu_to_le64(a) bitfn_swap64(a)
+# define le32_to_cpu(a) bitfn_swap32(a)
+# define cpu_to_le32(a) bitfn_swap32(a)
 
 # define cpu_to_le32_array(d, s, l) array_swap32(d, s, l)
 # define le32_to_cpu_array(d, s, l) array_swap32(d, s, l)
