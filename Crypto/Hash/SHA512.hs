@@ -15,6 +15,7 @@ module Crypto.Hash.SHA512
 
 	-- * Incremental hashing Functions
 	, init     -- :: Ctx
+	, init_t   -- :: Int -> Ctx
 	, update   -- :: Ctx -> ByteString -> Ctx
 	, finalize -- :: Ctx -> ByteString
 
@@ -72,6 +73,9 @@ instance Storable Ctx where
 foreign import ccall unsafe "sha512.h sha512_init"
 	c_sha512_init :: Ptr Ctx -> IO ()
 
+foreign import ccall unsafe "sha512.h sha512_init_t"
+	c_sha512_init_t :: Ptr Ctx -> Int -> IO ()
+
 foreign import ccall "sha512.h sha512_update"
 	c_sha512_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
@@ -96,6 +100,11 @@ finalizeInternalIO ptr =
 -- | init a context
 init :: Ctx
 init = unsafePerformIO $ allocInternal $ \ptr -> do (c_sha512_init ptr >> peek ptr)
+
+{-# NOINLINE init_t #-}
+-- | init a context using FIPS 180-4 for truncated SHA512
+init_t :: Int -> Ctx
+init_t t = unsafePerformIO $ allocInternal $ \ptr -> do (c_sha512_init_t ptr t >> peek ptr)
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
