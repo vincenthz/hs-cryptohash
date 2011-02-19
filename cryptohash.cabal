@@ -43,6 +43,7 @@ Library
                      Crypto.Hash.SHA256
                      Crypto.Hash.SHA384
                      Crypto.Hash.SHA512
+                     Crypto.Hash.SHA512t
                      Crypto.Hash.MD2
                      Crypto.Hash.MD4
                      Crypto.Hash.MD5
