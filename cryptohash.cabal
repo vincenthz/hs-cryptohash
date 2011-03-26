@@ -1,5 +1,5 @@
 Name:                cryptohash
-Version:             0.6.3
+Version:             0.7.0
 Description:
     A collection of crypto hashes, with a practical incremental and one-pass, pure APIs,
     with performance close to the fastest implementations available in others languages.
@@ -35,7 +35,7 @@ Flag cryptoapi
 Library
   Build-Depends:     base >= 4 && < 6, bytestring
   if flag(cryptoapi)
-    Build-depends:   crypto-api >= 0.1, tagged >= 0.1, cereal >= 0.2
+    Build-depends:   crypto-api >= 0.5, tagged >= 0.1, cereal >= 0.2
     cpp-options:     -DHAVE_CRYPTOAPI
   Extensions:        ForeignFunctionInterface
   Exposed-modules:   Crypto.Hash.SHA1
@@ -51,18 +51,6 @@ Library
                      Crypto.Hash.Skein256
                      Crypto.Hash.Skein512
                      Crypto.Hash.Tiger
-                     Data.CryptoHash.SHA1
-                     Data.CryptoHash.SHA224
-                     Data.CryptoHash.SHA256
-                     Data.CryptoHash.SHA384
-                     Data.CryptoHash.SHA512
-                     Data.CryptoHash.MD2
-                     Data.CryptoHash.MD4
-                     Data.CryptoHash.MD5
-                     Data.CryptoHash.RIPEMD160
-                     Data.CryptoHash.Skein256
-                     Data.CryptoHash.Skein512
-                     Data.CryptoHash.Tiger
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
@@ -78,7 +66,7 @@ Library
 
 Executable           Tests
   Main-Is:           Tests.hs
-  Extensions:        ForeignFunctionInterface, CPP
+  Extensions:        ForeignFunctionInterface
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
@@ -95,7 +83,7 @@ Executable           Tests
   else
     Buildable:       False
   if flag(cryptoapi)
-    Build-depends:   crypto-api >= 0.1, tagged >= 0.1, cereal >= 0.2
+    Build-depends:   crypto-api >= 0.5, tagged >= 0.1, cereal >= 0.2
     cpp-options:     -DHAVE_CRYPTOAPI
 
 source-repository head
