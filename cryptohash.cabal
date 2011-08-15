@@ -1,5 +1,5 @@
 Name:                cryptohash
-Version:             0.7.0
+Version:             0.7.1
 Description:
     A collection of crypto hashes, with a practical incremental and one-pass, pure APIs,
     with performance close to the fastest implementations available in others languages.
