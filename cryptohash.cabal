@@ -16,7 +16,7 @@ Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.6
 Homepage:            http://github.com/vincenthz/hs-cryptohash
-data-files:          README
+data-files:          README.md
 
 extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
