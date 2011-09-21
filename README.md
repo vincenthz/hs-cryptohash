@@ -28,7 +28,8 @@ the hash or hashlazy function there's no such need.
 
 Every hashes, exposes a very similar API.
 
-= Incremental API
+Incremental API
+---------------
 
 it's based on 3 different functions, similar to the lowlevel operations
 of a typical hash:
@@ -40,7 +41,8 @@ of a typical hash:
 all those operations are completely pure, and instead of changing the
 context as usual in others language, it create a new context each time.
 
-= One Pass API
+One Pass API
+------------
 
 The one pass API use the incremental API under the hood, but expose
 common operations to create digests out of a bytestring and lazy bytestring.
@@ -48,12 +50,14 @@ common operations to create digests out of a bytestring and lazy bytestring.
 * hash: create a digest (init+update+finalize) from a strict bytestring
 * hashlazy: create a digest (init+update+finalize) from a lazy bytestring
 
-= Integration with crypto-api
+Integration with crypto-api
+---------------------------
 
 cryptohash is fully integrated with crypto-api and you can use the
 related function in crypto-api to use any cryptohash modules.
 
-= Performance
+Performance
+-----------
 
 Cryptohash uses C implementations to provides maximum performance.
 see the cbits directory for more information
