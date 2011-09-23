@@ -42,7 +42,7 @@ static inline void skein512_do_chunk(struct skein512_ctx *ctx, uint64_t *buf, ui
 	uint64_t ts[3];
 	uint64_t ks[8+1];
 
-	ks[8] = 0x5555555555555555ULL;
+	ks[8] = 0x1bd11bdaa9fc1a22ULL;
 	ks[0] = ctx->h[0]; ks[8] ^= ctx->h[0];
 	ks[1] = ctx->h[1]; ks[8] ^= ctx->h[1];
 	ks[2] = ctx->h[2]; ks[8] ^= ctx->h[2];
