@@ -51,6 +51,7 @@ Library
                      Crypto.Hash.Skein256
                      Crypto.Hash.Skein512
                      Crypto.Hash.Tiger
+                     Crypto.MAC.HMAC
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
