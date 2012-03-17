@@ -28,6 +28,10 @@ Flag test
   Description:       Build unit test
   Default:           False
 
+Flag benchmark
+  Description:       Build benchmark test
+  Default:           False
+
 Flag cryptoapi
   Description:       Defines crypto-api instances
   Default:           True
@@ -81,6 +85,28 @@ Executable           Tests
   if flag(test)
     Buildable:       True
     Build-depends:   base >= 4, HUnit, bytestring
+  else
+    Buildable:       False
+  if flag(cryptoapi)
+    Build-depends:   crypto-api >= 0.5, tagged >= 0.1, cereal >= 0.2
+    cpp-options:     -DHAVE_CRYPTOAPI
+
+Executable           Bench
+  Main-Is:           Bench.hs
+  Extensions:        ForeignFunctionInterface
+  C-sources:         cbits/sha1.c
+                     cbits/sha256.c
+                     cbits/sha512.c
+                     cbits/md2.c
+                     cbits/md4.c
+                     cbits/md5.c
+                     cbits/ripemd.c
+                     cbits/skein256.c
+                     cbits/skein512.c
+                     cbits/tiger.c
+  if flag(benchmark)
+    Buildable:       True
+    Build-depends:   base >= 4, bytestring, criterion
   else
     Buildable:       False
   if flag(cryptoapi)
