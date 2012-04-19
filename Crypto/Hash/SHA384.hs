@@ -24,13 +24,17 @@ module Crypto.Hash.SHA384
 	) where
 
 import Prelude hiding (init)
-import Foreign
+import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.String
+import Foreign.Ptr
+import Foreign.Storable
+import Foreign.Marshal.Alloc
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, memcpy)
+import Data.Word
 
 #ifdef HAVE_CRYPTOAPI
 
