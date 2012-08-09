@@ -16,6 +16,7 @@ import qualified Crypto.Hash.RIPEMD160 as RIPEMD160
 import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
+import qualified Crypto.Hash.Whirlpool as Whirlpool
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -47,6 +48,8 @@ tigerHash = HashFct { fctHash = Tiger.hash, fctInc = hashinc Tiger.init Tiger.up
 
 skein256Hash x = HashFct { fctHash = Skein256.hash x, fctInc = hashinc (Skein256.init x) Skein256.update Skein256.finalize }
 skein512Hash x = HashFct { fctHash = Skein512.hash x, fctInc = hashinc (Skein512.init x) Skein512.update Skein512.finalize }
+
+whirlpoolHash = HashFct { fctHash = Whirlpool.hash, fctInc = hashinc Whirlpool.init Whirlpool.update Whirlpool.finalize }
 
 results :: [ (String, HashFct, [String]) ]
 results = [
@@ -123,6 +126,10 @@ results = [
 		"b95175236c83a459ce7ec6c12b761a838b22d750e765b3fdaa892201b2aa714bc3d1d887dd64028bbf177c1dd11baa09c6c4ddb598fd07d6a8c131a09fc5b958e2999a8006754b25abe3bf8492b7eabec70e52e04e5ac867df2393c573f16eee3244554f1d2b724f2c0437c62007f770",
 		"3265708553e7d146e5c7bcbc97b3e9e9f5b53a5e4af53612bdd6454da4fa7b13d413184fe34ed57b6574be10e389d0ec4b1d2b1dd2c80e0257d5a76b2cd86a19a27b1bcb3cc24d911b5dc5ee74d19ad558fd85b5f024e99f56d1d3199f1f9f88ed85fab9f945f11cf9fc00e94e3ca4c7",
 		"3d23d3db9be719bbd2119f8402a28f38d8225faa79d5b68b80738c64a82004aafc7a840cd6dd9bced6644fa894a3d8d7d2ee89525fd1956a2db052c4c2f8d2111c91ef46b0997540d42bcf384826af1a5ef6510077f52d0574cf2b46f1b6a5dad07ed40f3d21a13ca2d079fa602ff02d" ])
+    , ("Whirlpool", whirlpoolHash, [
+        "19fa61d75522a4669b44e39c1d2e1726c530232130d407f89afee0964997f7a73e83be698b288febcf88e3e03c4f0757ea8964e59b63d93708b138cc42a66eb3",
+        "b97de512e91e3828b40d2b0fdce9ceb3c4a71f9bea8d88e75c4fa854df36725fd2b52eb6544edcacd6f8beddfea403cb55ae31f03ad62a5ef54e42ee82c3fb35",
+        "dce81fc695cfea3d7e1446509238daf89f24cc61896f2d265927daa70f2108f8902f0dfd68be085d5abb9fcd2e482c1dc24f2fabf81f40b73495cad44d7360d3"])
 	]
 
 hexalise s =

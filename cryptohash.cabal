@@ -84,6 +84,7 @@ Executable           Tests
                      cbits/skein256.c
                      cbits/skein512.c
                      cbits/tiger.c
+                     cbits/whirlpool.c
   if flag(test)
     Buildable:       True
     Build-depends:   base >= 4, HUnit, bytestring
@@ -106,6 +107,7 @@ Executable           Bench
                      cbits/skein256.c
                      cbits/skein512.c
                      cbits/tiger.c
+                     cbits/whirlpool.c
   if flag(benchmark)
     Buildable:       True
     Build-depends:   base >= 4, bytestring, criterion
