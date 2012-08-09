@@ -22,7 +22,7 @@ extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
   cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h
   cbits/skein.h cbits/skein256.h cbits/skein512.h
-  cbits/tiger.h
+  cbits/tiger.h cbits/whirlpool.h cbits/whirlpool_nessie.h
 
 Flag test
   Description:       Build unit test
@@ -55,6 +55,7 @@ Library
                      Crypto.Hash.Skein256
                      Crypto.Hash.Skein512
                      Crypto.Hash.Tiger
+                     Crypto.Hash.Whirlpool
                      Crypto.MAC.HMAC
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse
   C-sources:         cbits/sha1.c
@@ -67,6 +68,7 @@ Library
                      cbits/skein256.c
                      cbits/skein512.c
                      cbits/tiger.c
+                     cbits/whirlpool.c
   Include-Dirs:      cbits
 
 Executable           Tests
