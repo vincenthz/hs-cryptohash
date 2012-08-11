@@ -17,6 +17,7 @@ The complete list of supported hashes:
 * SHA-2 family: 224, 256, 384, 512 and the newer 512t
 * Skein: 256, 512
 * Tiger
+* Whirlpool
 
 You can easily import any hash with the following:
 
