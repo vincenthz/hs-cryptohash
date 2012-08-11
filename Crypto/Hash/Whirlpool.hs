@@ -73,13 +73,13 @@ instance Storable Ctx where
 
 	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
 
-foreign import ccall unsafe "whirlpool.h NESSIEinit"
+foreign import ccall unsafe "whirlpool.h whirlpool_init"
 	c_whirlpool_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "whirlpool.h NESSIEadd"
+foreign import ccall "whirlpool.h whirlpool_add"
 	c_whirlpool_update :: CString -> Word32 -> Ptr Ctx -> IO ()
 
-foreign import ccall unsafe "whirlpool.h NESSIEfinalize"
+foreign import ccall unsafe "whirlpool.h whirlpool_finalize"
 	c_whirlpool_finalize :: Ptr Ctx -> CString -> IO ()
 
 allocInternal :: (Ptr Ctx -> IO a) -> IO a

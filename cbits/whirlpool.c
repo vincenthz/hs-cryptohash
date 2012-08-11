@@ -62,7 +62,7 @@
 #include <string.h>
 
 #include "bitfn.h"
-#include "whirlpool_nessie.h"
+#include "whirlpool.h"
 
 /* #define TRACE_INTERMEDIATE_VALUES */
 
@@ -721,7 +721,7 @@ static void inplaceXor(uint64_t dst[8], uint64_t src[8]) {
 /**
  * The core Whirlpool transform.
  */
-static void processBuffer(struct NESSIEstruct * const structpointer) {
+static void processBuffer(whirlpool_ctx * const structpointer) {
     int i, r;
     uint64_t K[8];        /* the round key */
     uint64_t block[8];    /* mu(buffer) */
@@ -777,7 +777,7 @@ static void processBuffer(struct NESSIEstruct * const structpointer) {
 /**
  * Initialize the hashing state.
  */
-void NESSIEinit(struct NESSIEstruct * const structpointer) {
+void whirlpool_init(struct whirlpool_ctx * const structpointer) {
     int i;
 
     memset(structpointer->bitLength, 0, 32);
@@ -796,9 +796,9 @@ void NESSIEinit(struct NESSIEstruct * const structpointer) {
  *
  * This method maintains the invariant: bufferBits < DIGESTBITS
  */
-void NESSIEadd(const unsigned char * const source,
+void whirlpool_add(const unsigned char * const source,
                unsigned long sourceBits,
-               struct NESSIEstruct * const structpointer) {
+               struct whirlpool_ctx * const structpointer) {
     /*
                        sourcePos
                        |
@@ -914,7 +914,7 @@ void NESSIEadd(const unsigned char * const source,
  * 
  * This method uses the invariant: bufferBits < DIGESTBITS
  */
-void NESSIEfinalize(struct NESSIEstruct * const structpointer,
+void whirlpool_finalize(struct whirlpool_ctx * const structpointer,
                     unsigned char * const result) {
     int i;
     uint8_t *buffer      = structpointer->buffer;
