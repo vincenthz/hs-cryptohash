@@ -31,8 +31,8 @@ typedef unsigned __int64 uint64_t;
 typedef struct NESSIEstruct {
 	uint8_t  bitLength[LENGTHBYTES]; /* global number of hashed bits (256-bit counter) */
 	uint8_t  buffer[WBLOCKBYTES];	/* buffer of data to hash */
-	int bufferBits;		        /* current number of bits on the buffer */
-	int bufferPos;		        /* current (possibly incomplete) byte slot on the buffer */
+	uint32_t bufferBits;		        /* current number of bits on the buffer */
+	uint32_t bufferPos;		        /* current (possibly incomplete) byte slot on the buffer */
 	uint64_t hash[DIGESTBYTES/8];    /* the hashing state */
 } NESSIEstruct;
 
