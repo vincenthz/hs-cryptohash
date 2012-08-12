@@ -628,6 +628,51 @@ static const uint64_t rc[R + 1] = {
     LL(0xca2dbf07ad5a8333),
 };
 
+/* This might not be true for all platforms and compilers. */
+#define SANE_ARRAY_PACKING 1
+
+#if defined(SANE_ARRAY_PACKING) && (defined(ARCH_IS_LITTLE_ENDIAN) || defined(ARCH_IS_BIG_ENDIAN))
+
+#if defined(ARCH_IS_LITTLE_ENDIAN)
+#define LB(n)  do { L[n] = C0[mu[((n+0)%8) * 8 + 7]] \
+                         ^ C1[mu[((n+7)%8) * 8 + 6]] \
+                         ^ C2[mu[((n+6)%8) * 8 + 5]] \
+                         ^ C3[mu[((n+5)%8) * 8 + 4]] \
+                         ^ C4[mu[((n+4)%8) * 8 + 3]] \
+                         ^ C5[mu[((n+3)%8) * 8 + 2]] \
+                         ^ C6[mu[((n+2)%8) * 8 + 1]] \
+                         ^ C7[mu[((n+1)%8) * 8 + 0]] \
+                         ; } while (0)
+#else
+#define LB(n)  do { L[n] = C0[mu[((n+0)%8) * 8 + 0]] \
+                         ^ C1[mu[((n+7)%8) * 8 + 1]] \
+                         ^ C2[mu[((n+6)%8) * 8 + 2]] \
+                         ^ C3[mu[((n+5)%8) * 8 + 3]] \
+                         ^ C4[mu[((n+4)%8) * 8 + 4]] \
+                         ^ C5[mu[((n+3)%8) * 8 + 5]] \
+                         ^ C6[mu[((n+2)%8) * 8 + 6]] \
+                         ^ C7[mu[((n+1)%8) * 8 + 7]] \
+                         ; } while (0)
+#endif
+
+static void transformMatrix(uint64_t m[8]) {
+    uint64_t L[8];
+    uint8_t *mu = (uint8_t*)m;
+    
+    LB(0);
+    LB(1);
+    LB(2);
+    LB(3);
+    LB(4);
+    LB(5);
+    LB(6);
+    LB(7);
+
+    array_copy64(m, L, 8);
+}
+
+#else
+
 static void transformMatrix(uint64_t m[8]) {
     uint64_t L[8];
     
@@ -706,6 +751,8 @@ static void transformMatrix(uint64_t m[8]) {
 
     array_copy64(m, L, 8);
 }
+
+#endif
 
 static void inplaceXor(uint64_t dst[8], uint64_t src[8]) {
     dst[0] ^= src[0];
