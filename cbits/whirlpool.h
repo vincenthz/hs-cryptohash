@@ -18,17 +18,14 @@
 
 typedef struct whirlpool_ctx {
 	uint8_t  bitLength[LENGTHBYTES]; /* global number of hashed bits (256-bit counter) */
-	uint8_t  buffer[WBLOCKBYTES];	/* buffer of data to hash */
-	uint32_t bufferBits;		        /* current number of bits on the buffer */
-	uint32_t bufferPos;		        /* current (possibly incomplete) byte slot on the buffer */
+	uint8_t  buffer[WBLOCKBYTES];    /* buffer of data to hash */
+	uint32_t bufferBits;             /* current number of bits on the buffer */
+	uint32_t bufferPos;              /* current (possibly incomplete) byte slot on the buffer */
 	uint64_t hash[DIGESTBYTES/8];    /* the hashing state */
 } whirlpool_ctx;
 
-void whirlpool_init(struct whirlpool_ctx * const structpointer);
-void whirlpool_add(const unsigned char * const source,
-               unsigned long sourceBits,
-               struct whirlpool_ctx * const structpointer);
-void whirlpool_finalize(struct whirlpool_ctx * const structpointer,
-                    unsigned char * const result);
+void whirlpool_init(struct whirlpool_ctx * const ctx);
+void whirlpool_update(struct whirlpool_ctx * const ctx, const uint8_t * const source, uint32_t len);
+void whirlpool_finalize(struct whirlpool_ctx * const ctx, uint8_t * const result);
 
 #endif

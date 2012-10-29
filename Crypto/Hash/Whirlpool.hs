@@ -76,8 +76,8 @@ instance Storable Ctx where
 foreign import ccall unsafe "whirlpool.h whirlpool_init"
 	c_whirlpool_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "whirlpool.h whirlpool_add"
-	c_whirlpool_update :: CString -> Word32 -> Ptr Ctx -> IO ()
+foreign import ccall "whirlpool.h whirlpool_update"
+	c_whirlpool_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "whirlpool.h whirlpool_finalize"
 	c_whirlpool_finalize :: Ptr Ctx -> CString -> IO ()
@@ -90,7 +90,7 @@ allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_whirlpool_update cs (8 * fromIntegral len) ptr)
+	unsafeUseAsCStringLen d (\(cs, len) -> c_whirlpool_update ptr cs (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr =
