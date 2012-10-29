@@ -13,6 +13,7 @@ import qualified Crypto.Hash.RIPEMD160 as RIPEMD160
 import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
+import qualified Crypto.Hash.Whirlpool as Whirlpool
 
 allHashs =
 	[ ("MD2",MD2.hash)
@@ -28,6 +29,7 @@ allHashs =
 	, ("Tiger",Tiger.hash)
 	, ("Skein256-256",Skein256.hash 256)
 	, ("Skein512-512",Skein512.hash 512)
+    , ("Whirlpool",Whirlpool.hash)
 	]
 
 benchHash :: Int -> (B.ByteString -> B.ByteString) -> Pure
