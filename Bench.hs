@@ -39,6 +39,7 @@ allHashs =
 benchHash :: a -> (a -> B.ByteString) -> Pure
 benchHash bs f = whnf f bs
 
+withHashesFilter out f = map f $ filter (\(n,_,_) -> not (n `elem` out)) allHashs
 withHashes f = map f allHashs
 
 main = do
@@ -52,7 +53,7 @@ main = do
         [ bgroup "hash-32b" (withHashes (\(name, f,_) -> bench name $ benchHash bs32 f))
         , bgroup "hash-256b" (withHashes (\(name, f,_) -> bench name $ benchHash bs256 f))
         , bgroup "hash-4Kb" (withHashes (\(name, f,_) -> bench name $ benchHash bs4096 f))
-        , bgroup "hash-1Mb" (withHashes (\(name, f,_) -> bench name $ benchHash bs1M f))
-        , bgroup "iuf-64x10" (withHashes (\(name, _,f) -> bench name $ benchHash lbs64x10 f))
+        , bgroup "hash-1Mb" (withHashesFilter ["MD2"] (\(name, f,_) -> bench name $ benchHash bs1M f))
+        , bgroup "iuf-64x256" (withHashes (\(name, _,f) -> bench name $ benchHash lbs64x256 f))
         , bgroup "iuf-64x4096" (withHashes (\(name, _,f) -> bench name $ benchHash lbs64x4096 f))
         ]
