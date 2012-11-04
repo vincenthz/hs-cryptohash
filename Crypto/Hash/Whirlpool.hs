@@ -10,18 +10,18 @@
 -- A module containing Whirlpool bindings
 --
 module Crypto.Hash.Whirlpool
-	( Ctx(..)
-	, Whirlpool
+    ( Ctx(..)
+    , Whirlpool
 
-	-- * Incremental hashing Functions
-	, init     -- :: Ctx
-	, update   -- :: Ctx -> ByteString -> Ctx
-	, finalize -- :: Ctx -> ByteString
+    -- * Incremental hashing Functions
+    , init     -- :: Ctx
+    , update   -- :: Ctx -> ByteString -> Ctx
+    , finalize -- :: Ctx -> ByteString
 
-	-- * Single Pass hashing
-	, hash     -- :: ByteString -> ByteString
-	, hashlazy -- :: ByteString -> ByteString
-	) where
+    -- * Single Pass hashing
+    , hash     -- :: ByteString -> ByteString
+    , hashlazy -- :: ByteString -> ByteString
+    ) where
 
 import Prelude hiding (init)
 import System.IO.Unsafe (unsafePerformIO)
@@ -46,41 +46,43 @@ import Data.Tagged (Tagged(..))
 import qualified Crypto.Classes as C (Hash(..))
 
 instance C.Hash Ctx Whirlpool where
-	outputLength    = Tagged 512
-	blockLength     = Tagged 512
-	initialCtx      = init
-	updateCtx       = update
-	finalize ctx bs = Digest . finalize $ update ctx bs
+    outputLength    = Tagged 512
+    blockLength     = Tagged 512
+    initialCtx      = init
+    updateCtx       = update
+    finalize ctx bs = Digest . finalize $ update ctx bs
 
 instance Serialize Whirlpool where
-	get            = liftM Digest (getByteString digestSize)
-	put (Digest d) = putByteString d
+    get            = liftM Digest (getByteString digestSize)
+    put (Digest d) = putByteString d
 
 #endif
 
 data Ctx = Ctx !ByteString
 data Whirlpool = Digest !ByteString
-	deriving (Eq,Ord,Show)
+    deriving (Eq,Ord,Show)
 
-digestSize, sizeCtx :: Int
+digestSize :: Int
 digestSize = 512 `div` 8
+
+sizeCtx :: Int
 sizeCtx = 32 + 64 + 4 + 4 + 64
 
 instance Storable Ctx where
-	sizeOf _    = sizeCtx
-	alignment _ = 16
-	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
+    sizeOf _    = sizeCtx
+    alignment _ = 16
+    poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
 
-	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
+    peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
 
 foreign import ccall unsafe "whirlpool.h whirlpool_init"
-	c_whirlpool_init :: Ptr Ctx -> IO ()
+    c_whirlpool_init :: Ptr Ctx -> IO ()
 
 foreign import ccall "whirlpool.h whirlpool_update"
-	c_whirlpool_update :: Ptr Ctx -> CString -> Word32 -> IO ()
+    c_whirlpool_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "whirlpool.h whirlpool_finalize"
-	c_whirlpool_finalize :: Ptr Ctx -> CString -> IO ()
+    c_whirlpool_finalize :: Ptr Ctx -> CString -> IO ()
 
 allocInternal :: (Ptr Ctx -> IO a) -> IO a
 allocInternal = alloca
@@ -90,11 +92,11 @@ allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_whirlpool_update ptr cs (fromIntegral len))
+    unsafeUseAsCStringLen d (\(cs, len) -> c_whirlpool_update ptr cs (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr =
-	allocaBytes digestSize (\cs -> c_whirlpool_finalize ptr cs >> B.packCStringLen (cs, digestSize))
+    allocaBytes digestSize (\cs -> c_whirlpool_finalize ptr cs >> B.packCStringLen (cs, digestSize))
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -115,10 +117,10 @@ finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInte
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
 hash d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_whirlpool_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
+    c_whirlpool_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
 hashlazy l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_whirlpool_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+    c_whirlpool_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

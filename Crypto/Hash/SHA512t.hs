@@ -10,18 +10,18 @@
 -- A module containing SHA512/t
 --
 module Crypto.Hash.SHA512t
-	( Ctx(..)
-	--, SHA512t
+    ( Ctx(..)
+    --, SHA512t
 
-	-- * Incremental hashing Functions
-	, init     -- :: Ctx
-	, update   -- :: Ctx -> ByteString -> Ctx
-	, finalize -- :: Ctx -> ByteString
+    -- * Incremental hashing Functions
+    , init     -- :: Ctx
+    , update   -- :: Ctx -> ByteString -> Ctx
+    , finalize -- :: Ctx -> ByteString
 
-	-- * Single Pass hashing
-	, hash     -- :: ByteString -> ByteString
-	, hashlazy -- :: ByteString -> ByteString
-	) where
+    -- * Single Pass hashing
+    , hash     -- :: ByteString -> ByteString
+    , hashlazy -- :: ByteString -> ByteString
+    ) where
 
 import Prelude hiding (init)
 import Data.List (foldl')

@@ -59,7 +59,7 @@ Library
                      Crypto.Hash.Tiger
                      Crypto.Hash.Whirlpool
                      Crypto.MAC.HMAC
-  ghc-options:       -Wall -O2 -optc-O3 -fno-cse
+  ghc-options:       -Wall -O2 -optc-O3 -fno-cse -fwarn-tabs
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c

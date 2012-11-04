@@ -10,18 +10,18 @@
 -- A module containing Skein256 bindings
 --
 module Crypto.Hash.Skein256
-	( Ctx(..)
-	, Skein256
+    ( Ctx(..)
+    , Skein256
 
-	-- * Incremental hashing Functions
-	, init     -- :: Int -> Ctx
-	, update   -- :: Ctx -> ByteString -> Ctx
-	, finalize -- :: Ctx -> ByteString
+    -- * Incremental hashing Functions
+    , init     -- :: Int -> Ctx
+    , update   -- :: Ctx -> ByteString -> Ctx
+    , finalize -- :: Ctx -> ByteString
 
-	-- * Single Pass hashing
-	, hash     -- :: Int -> ByteString -> ByteString
-	, hashlazy -- :: Int -> ByteString -> ByteString
-	) where
+    -- * Single Pass hashing
+    , hash     -- :: Int -> ByteString -> ByteString
+    , hashlazy -- :: Int -> ByteString -> ByteString
+    ) where
 
 import Prelude hiding (init)
 import System.IO.Unsafe (unsafePerformIO)
@@ -48,46 +48,46 @@ import Data.Tagged (Tagged(..))
 import qualified Crypto.Classes as C (Hash(..))
 
 instance C.Hash Ctx Skein256 where
-	outputLength    = Tagged (32 * 8)
-	blockLength     = Tagged (32 * 8)
-	initialCtx      = init (32 * 8)
-	updateCtx       = update
-	finalize ctx bs = Digest . finalize $ update ctx bs
+    outputLength    = Tagged (32 * 8)
+    blockLength     = Tagged (32 * 8)
+    initialCtx      = init (32 * 8)
+    updateCtx       = update
+    finalize ctx bs = Digest . finalize $ update ctx bs
 
 instance Serialize Skein256 where
-	get            = liftM Digest (getByteString 32)
-	put (Digest d) = putByteString d
+    get            = liftM Digest (getByteString 32)
+    put (Digest d) = putByteString d
 
 #endif
 
 data Ctx = Ctx !ByteString
 data Skein256 = Digest !ByteString
-	deriving (Eq,Ord,Show)
+    deriving (Eq,Ord,Show)
 
 sizeCtx :: Int
 sizeCtx = 100
 
 instance Storable Ctx where
-	sizeOf _    = sizeCtx
-	alignment _ = 16
-	poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
+    sizeOf _    = sizeCtx
+    alignment _ = 16
+    poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
 
-	peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
+    peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
 
 poke_hashlen :: Ptr Ctx -> IO Int
 poke_hashlen ptr = do
-	let iptr = castPtr ptr :: Ptr CUInt
-	a <- peek iptr
-	return $ fromIntegral a
+    let iptr = castPtr ptr :: Ptr CUInt
+    a <- peek iptr
+    return $ fromIntegral a
 
 foreign import ccall unsafe "skein256.h skein256_init"
-	c_skein256_init :: Ptr Ctx -> CUInt -> IO ()
+    c_skein256_init :: Ptr Ctx -> CUInt -> IO ()
 
 foreign import ccall "skein256.h skein256_update"
-	c_skein256_update :: Ptr Ctx -> CString -> Word32 -> IO ()
+    c_skein256_update :: Ptr Ctx -> CString -> Word32 -> IO ()
 
 foreign import ccall unsafe "skein256.h skein256_finalize"
-	c_skein256_finalize :: Ptr Ctx -> CString -> IO ()
+    c_skein256_finalize :: Ptr Ctx -> CString -> IO ()
 
 allocInternal :: (Ptr Ctx -> IO a) -> IO a
 allocInternal = alloca
@@ -97,12 +97,12 @@ allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
-	unsafeUseAsCStringLen d (\(cs, len) -> c_skein256_update ptr cs (fromIntegral len))
+    unsafeUseAsCStringLen d (\(cs, len) -> c_skein256_update ptr cs (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr = do
-	digestSize <- fmap (\x -> (x + 7) `shiftR` 3) $ poke_hashlen ptr
-	allocaBytes digestSize (\cs -> c_skein256_finalize ptr cs >> B.packCStringLen (cs, digestSize))
+    digestSize <- fmap (\x -> (x + 7) `shiftR` 3) $ poke_hashlen ptr
+    allocaBytes digestSize (\cs -> c_skein256_finalize ptr cs >> B.packCStringLen (cs, digestSize))
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -123,10 +123,10 @@ finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInte
 -- | hash a strict bytestring into a digest bytestring
 hash :: Int -> ByteString -> ByteString
 hash hashlen d = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein256_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
+    c_skein256_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: Int -> L.ByteString -> ByteString
 hashlazy hashlen l = unsafePerformIO $ allocInternal $ \ptr -> do
-	c_skein256_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+    c_skein256_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
