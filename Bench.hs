@@ -1,5 +1,7 @@
+{-# LANGUAGE BangPatterns #-}
 import Criterion.Main
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as L
 import qualified Crypto.Hash.MD2 as MD2
 import qualified Crypto.Hash.MD4 as MD4
 import qualified Crypto.Hash.MD5 as MD5
@@ -15,30 +17,42 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 
-allHashs =
-	[ ("MD2",MD2.hash)
-	, ("MD4",MD4.hash)
-	, ("MD5",MD5.hash)
-	, ("SHA1",SHA1.hash)
-	, ("SHA224",SHA224.hash)
-	, ("SHA256",SHA256.hash)
-	, ("SHA384",SHA384.hash)
-	, ("SHA512",SHA512.hash)
-	, ("SHA512t-512",(SHA512t.hash 512))
-	, ("RIPEMD160",RIPEMD160.hash)
-	, ("Tiger",Tiger.hash)
-	, ("Skein256-256",Skein256.hash 256)
-	, ("Skein512-512",Skein512.hash 512)
-    , ("Whirlpool",Whirlpool.hash)
-	]
+hashmany (i,u,f) = f . foldl u i
 
-benchHash :: Int -> (B.ByteString -> B.ByteString) -> Pure
-benchHash sz f = whnf f (B.replicate sz 0)
+allHashs =
+    [ ("MD2",MD2.hash, hashmany (MD2.init,MD2.update,MD2.finalize))
+    , ("MD4",MD4.hash, hashmany (MD4.init,MD4.update,MD4.finalize))
+    , ("MD5",MD5.hash, hashmany (MD5.init,MD5.update,MD5.finalize))
+    , ("SHA1",SHA1.hash, hashmany (SHA1.init,SHA1.update,SHA1.finalize))
+    , ("SHA224",SHA224.hash, hashmany (SHA224.init,SHA224.update,SHA224.finalize))
+    , ("SHA256",SHA256.hash, hashmany (SHA256.init,SHA256.update,SHA256.finalize))
+    , ("SHA384",SHA384.hash, hashmany (SHA384.init,SHA384.update,SHA384.finalize))
+    , ("SHA512",SHA512.hash, hashmany (SHA512.init,SHA512.update,SHA512.finalize))
+    , ("SHA512t-512",SHA512t.hash 512, hashmany (SHA512t.init 512,SHA512t.update,SHA512t.finalize))
+    , ("RIPEMD160",RIPEMD160.hash, hashmany (RIPEMD160.init,RIPEMD160.update,RIPEMD160.finalize))
+    , ("Tiger",Tiger.hash, hashmany (Tiger.init,Tiger.update,Tiger.finalize))
+    , ("Skein256-256",Skein256.hash 256, hashmany (Skein256.init 256,Skein256.update,Skein256.finalize))
+    , ("Skein512-512",Skein512.hash 512, hashmany (Skein512.init 512,Skein512.update,Skein512.finalize))
+    , ("Whirlpool",Whirlpool.hash, hashmany (Whirlpool.init,Whirlpool.update,Whirlpool.finalize))
+    ]
+
+benchHash :: a -> (a -> B.ByteString) -> Pure
+benchHash bs f = whnf f bs
 
 withHashes f = map f allHashs
 
-main = defaultMain
-	[ bgroup "hash-256b" (withHashes (\(name, f) -> bench name $ benchHash 256 f))
-	, bgroup "hash-4Kb" (withHashes (\(name, f) -> bench name $ benchHash 4096 f))
-	, bgroup "hash-1Mb" (withHashes (\(name, f) -> bench name $ benchHash (1*1024*1024) f))
-	]
+main = do
+    let !bs32     = B.replicate 32 0
+        !bs256    = B.replicate 256 0
+        !bs4096   = B.replicate 4096 0
+        !bs1M     = B.replicate (1*1024*1024) 0
+    let !lbs64x256 = (map (const (B.replicate 64 0)) [0..3])
+        !lbs64x4096 = (map (const (B.replicate 64 0)) [0..63])
+    defaultMain
+        [ bgroup "hash-32b" (withHashes (\(name, f,_) -> bench name $ benchHash bs32 f))
+        , bgroup "hash-256b" (withHashes (\(name, f,_) -> bench name $ benchHash bs256 f))
+        , bgroup "hash-4Kb" (withHashes (\(name, f,_) -> bench name $ benchHash bs4096 f))
+        , bgroup "hash-1Mb" (withHashes (\(name, f,_) -> bench name $ benchHash bs1M f))
+        , bgroup "iuf-64x10" (withHashes (\(name, _,f) -> bench name $ benchHash lbs64x10 f))
+        , bgroup "iuf-64x4096" (withHashes (\(name, _,f) -> bench name $ benchHash lbs64x4096 f))
+        ]
