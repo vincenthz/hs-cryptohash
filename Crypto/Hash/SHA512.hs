@@ -26,15 +26,14 @@ module Crypto.Hash.SHA512
 
 import Prelude hiding (init)
 import System.IO.Unsafe (unsafePerformIO)
-import Foreign.C.String
 import Foreign.Ptr
+import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
 import Foreign.Marshal.Alloc
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCString, unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, memcpy)
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
 
 #ifdef HAVE_CRYPTOAPI
@@ -63,18 +62,45 @@ data Ctx = Ctx !ByteString
 data SHA512 = Digest !ByteString
     deriving (Eq,Ord,Show)
 
+
+{-# INLINE digestSize #-}
 digestSize :: Int
 digestSize = 64
 
+{-# INLINE sizeCtx #-}
 sizeCtx :: Int
 sizeCtx = 256
 
-instance Storable Ctx where
-    sizeOf _    = sizeCtx
-    alignment _ = 16
-    poke ptr (Ctx b) = unsafeUseAsCString b (\cs -> memcpy (castPtr ptr) (castPtr cs) (fromIntegral sizeCtx))
+{-# INLINE withByteStringPtr #-}
+withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
+withByteStringPtr b f =
+    withForeignPtr fptr $ \ptr -> f (ptr `plusPtr` off)
+    where (fptr, off, _) = toForeignPtr b
 
-    peek ptr = create sizeCtx (\bptr -> memcpy bptr (castPtr ptr) (fromIntegral sizeCtx)) >>= return . Ctx
+{-# INLINE memcopy64 #-}
+memcopy64 :: Ptr Word64 -> Ptr Word64 -> IO ()
+memcopy64 dst src = mapM_ peekAndPoke [0..(32-1)]
+    where peekAndPoke i = peekElemOff src i >>= pokeElemOff dst i
+
+withCtxCopy :: Ctx -> (Ptr Ctx -> IO ()) -> IO Ctx
+withCtxCopy (Ctx ctxB) f = Ctx `fmap` createCtx
+    where createCtx = create sizeCtx $ \dstPtr ->
+                      withByteStringPtr ctxB $ \srcPtr -> do
+                          memcopy64 (castPtr dstPtr) (castPtr srcPtr)
+                          f (castPtr dstPtr)
+
+withCtxThrow :: Ctx -> (Ptr Ctx -> IO a) -> IO a
+withCtxThrow (Ctx ctxB) f =
+    allocaBytes sizeCtx $ \dstPtr ->
+    withByteStringPtr ctxB $ \srcPtr -> do
+        memcopy64 (castPtr dstPtr) (castPtr srcPtr)
+        f (castPtr dstPtr)
+
+withCtxNew :: (Ptr Ctx -> IO ()) -> IO Ctx
+withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
+
+withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
+withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
 foreign import ccall unsafe "sha512.h sha512_init"
     c_sha512_init :: Ptr Ctx -> IO ()
@@ -83,53 +109,47 @@ foreign import ccall unsafe "sha512.h sha512_init_t"
     c_sha512_init_t :: Ptr Ctx -> Int -> IO ()
 
 foreign import ccall "sha512.h sha512_update"
-    c_sha512_update :: Ptr Ctx -> CString -> Word32 -> IO ()
+    c_sha512_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
 foreign import ccall unsafe "sha512.h sha512_finalize"
-    c_sha512_finalize :: Ptr Ctx -> CString -> IO ()
-
-allocInternal :: (Ptr Ctx -> IO a) -> IO a
-allocInternal = alloca
-
-allocInternalFrom :: Ctx -> (Ptr Ctx -> IO a) -> IO a
-allocInternalFrom ctx f = allocInternal $ \ptr -> (poke ptr ctx >> f ptr)
+    c_sha512_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
-    unsafeUseAsCStringLen d (\(cs, len) -> c_sha512_update ptr cs (fromIntegral len))
+    unsafeUseAsCStringLen d (\(cs, len) -> c_sha512_update ptr (castPtr cs) (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
 finalizeInternalIO ptr =
-    allocaBytes digestSize (\cs -> c_sha512_finalize ptr cs >> B.packCStringLen (cs, digestSize))
+    create digestSize (c_sha512_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafePerformIO $ allocInternal $ \ptr -> do (c_sha512_init ptr >> peek ptr)
+init = unsafePerformIO $ withCtxNew $ c_sha512_init
 
 {-# NOINLINE init_t #-}
 -- | init a context using FIPS 180-4 for truncated SHA512
 init_t :: Int -> Ctx
-init_t t = unsafePerformIO $ allocInternal $ \ptr -> do (c_sha512_init_t ptr t >> peek ptr)
+init_t t = unsafePerformIO $ withCtxNew $ \ptr -> c_sha512_init_t ptr t
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do updateInternalIO ptr d >> peek ptr
+update ctx d = unsafePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ allocInternalFrom ctx $ \ptr -> do finalizeInternalIO ptr
+finalize ctx = unsafePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ allocInternal $ \ptr -> do
+hash d = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ allocInternal $ \ptr -> do
+hashlazy l = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
