@@ -15,6 +15,7 @@ The complete list of supported hashes:
 * RIPEMD160
 * SHA1
 * SHA-2 family: 224, 256, 384, 512 and the newer 512t
+* SHA-3 (aka Keccak)
 * Skein: 256, 512
 * Tiger
 * Whirlpool
