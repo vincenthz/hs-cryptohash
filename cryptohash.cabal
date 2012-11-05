@@ -20,7 +20,7 @@ data-files:          README.md
 
 extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
-  cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h
+  cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h cbits/sha3.h
   cbits/skein.h cbits/skein256.h cbits/skein512.h
   cbits/tiger.h cbits/whirlpool.h
 
@@ -50,6 +50,7 @@ Library
                      Crypto.Hash.SHA384
                      Crypto.Hash.SHA512
                      Crypto.Hash.SHA512t
+                     Crypto.Hash.SHA3
                      Crypto.Hash.MD2
                      Crypto.Hash.MD4
                      Crypto.Hash.MD5
@@ -63,6 +64,7 @@ Library
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
+                     cbits/sha3.c
                      cbits/md2.c
                      cbits/md4.c
                      cbits/md5.c
@@ -79,6 +81,7 @@ Executable           Tests
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
+                     cbits/sha3.c
                      cbits/md2.c
                      cbits/md4.c
                      cbits/md5.c
@@ -102,6 +105,7 @@ Executable           Bench
   C-sources:         cbits/sha1.c
                      cbits/sha256.c
                      cbits/sha512.c
+                     cbits/sha3.c
                      cbits/md2.c
                      cbits/md4.c
                      cbits/md5.c

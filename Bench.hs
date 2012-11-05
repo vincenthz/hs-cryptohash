@@ -11,6 +11,7 @@ import qualified Crypto.Hash.SHA256 as SHA256
 import qualified Crypto.Hash.SHA384 as SHA384
 import qualified Crypto.Hash.SHA512 as SHA512
 import qualified Crypto.Hash.SHA512t as SHA512t
+import qualified Crypto.Hash.SHA3 as SHA3
 import qualified Crypto.Hash.RIPEMD160 as RIPEMD160
 import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
@@ -29,6 +30,10 @@ allHashs =
     , ("SHA2-384",SHA384.hash, hashmany (SHA384.init,SHA384.update,SHA384.finalize))
     , ("SHA2-512",SHA512.hash, hashmany (SHA512.init,SHA512.update,SHA512.finalize))
     , ("SHA2-512t-512",SHA512t.hash 512, hashmany (SHA512t.init 512,SHA512t.update,SHA512t.finalize))
+    , ("SHA3-224",SHA3.hash 224, hashmany (SHA3.init 224,SHA3.update,SHA3.finalize))
+    , ("SHA3-256",SHA3.hash 256, hashmany (SHA3.init 256,SHA3.update,SHA3.finalize))
+    , ("SHA3-384",SHA3.hash 384, hashmany (SHA3.init 384,SHA3.update,SHA3.finalize))
+    , ("SHA3-512",SHA3.hash 512, hashmany (SHA3.init 512,SHA3.update,SHA3.finalize))
     , ("RIPEMD160",RIPEMD160.hash, hashmany (RIPEMD160.init,RIPEMD160.update,RIPEMD160.finalize))
     , ("Tiger",Tiger.hash, hashmany (Tiger.init,Tiger.update,Tiger.finalize))
     , ("Skein256-256",Skein256.hash 256, hashmany (Skein256.init 256,Skein256.update,Skein256.finalize))
