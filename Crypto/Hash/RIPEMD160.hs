@@ -24,7 +24,6 @@ module Crypto.Hash.RIPEMD160
     ) where
 
 import Prelude hiding (init)
-import System.IO.Unsafe (unsafePerformIO)
 import Foreign.Ptr
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
@@ -32,7 +31,7 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr)
+import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
 
 #ifdef HAVE_CRYPTOAPI
@@ -121,26 +120,26 @@ finalizeInternalIO ptr =
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafePerformIO $ withCtxNew $ c_ripemd160_init
+init = inlinePerformIO $ withCtxNew $ c_ripemd160_init
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_ripemd160_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_ripemd160_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
