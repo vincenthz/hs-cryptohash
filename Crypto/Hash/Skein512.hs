@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 -- |
 -- Module      : Crypto.Hash.Skein512
@@ -19,8 +19,8 @@ module Crypto.Hash.Skein512
     , finalize -- :: Ctx -> ByteString
 
     -- * Single Pass hashing
-    , hash     -- :: Int -> ByteString -> ByteString
-    , hashlazy -- :: Int -> ByteString -> ByteString
+    , hash     -- :: Int -> ByteString -> Digest Skein512
+    , hashlazy -- :: Int -> ByteString -> Digest Skein512
     ) where
 
 import Prelude hiding (init)
@@ -35,32 +35,10 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, inlinePerformIO, toForeignPtr)
 import Data.Word
 import Data.Bits
-
-#ifdef HAVE_CRYPTOAPI
-
-import Control.Monad (liftM)
-import Data.Serialize (Serialize(..))
-import Data.Serialize.Get (getByteString)
-import Data.Serialize.Put (putByteString)
-import Data.Tagged (Tagged(..))
-import qualified Crypto.Classes as C (Hash(..))
-
-instance C.Hash Ctx Skein512 where
-    outputLength    = Tagged (64 * 8)
-    blockLength     = Tagged (64 * 8)
-    initialCtx      = init (64 * 8)
-    updateCtx       = update
-    finalize ctx bs = Digest . finalize $ update ctx bs
-
-instance Serialize Skein512 where
-    get            = liftM Digest (getByteString 64)
-    put (Digest d) = putByteString d
-
-#endif
+import Crypto.Hash.Types
 
 data Ctx = Ctx !ByteString
-data Skein512 = Digest !ByteString
-    deriving (Eq,Ord,Show)
+data Skein512
 
 sizeCtx :: Int
 sizeCtx = 152
@@ -116,9 +94,9 @@ updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_skein512_update ptr (castPtr cs) (fromIntegral len))
 
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
+finalizeInternalIO :: Ptr Ctx -> IO (Digest Skein512)
 finalizeInternalIO ptr =
-    peekHashlen ptr >>= \digestSize -> create digestSize (c_skein512_finalize ptr)
+    peekHashlen ptr >>= \digestSize -> (Digest `fmap` create digestSize (c_skein512_finalize ptr))
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -132,17 +110,17 @@ update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr 
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
-finalize :: Ctx -> ByteString
+finalize :: Ctx -> Digest Skein512
 finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
-hash :: Int -> ByteString -> ByteString
+hash :: Int -> ByteString -> Digest Skein512
 hash hashlen d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_skein512_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
-hashlazy :: Int -> L.ByteString -> ByteString
+hashlazy :: Int -> L.ByteString -> Digest Skein512
 hashlazy hashlen l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_skein512_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

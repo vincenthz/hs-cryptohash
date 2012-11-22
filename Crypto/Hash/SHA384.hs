@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses, EmptyDataDecls #-}
 
 -- |
 -- Module      : Crypto.Hash.SHA384
@@ -16,11 +16,11 @@ module Crypto.Hash.SHA384
     -- * Incremental hashing Functions
     , init     -- :: Ctx
     , update   -- :: Ctx -> ByteString -> Ctx
-    , finalize -- :: Ctx -> ByteString
+    , finalize -- :: Ctx -> Digest SHA384
 
     -- * Single Pass hashing
-    , hash     -- :: ByteString -> ByteString
-    , hashlazy -- :: ByteString -> ByteString
+    , hash     -- :: ByteString -> Digest SHA384
+    , hashlazy -- :: ByteString -> Digest SHA384
     ) where
 
 import Prelude hiding (init)
@@ -33,33 +33,10 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
-
-#ifdef HAVE_CRYPTOAPI
-
-import Control.Monad (liftM)
-import Data.Serialize (Serialize(..))
-import Data.Serialize.Get (getByteString)
-import Data.Serialize.Put (putByteString)
-import Data.Tagged (Tagged(..))
-import qualified Crypto.Classes as C (Hash(..))
-
-instance C.Hash Ctx SHA384 where
-    outputLength    = Tagged (48 * 8)
-    blockLength     = Tagged (128 * 8)
-    initialCtx      = init
-    updateCtx       = update
-    finalize ctx bs = Digest . finalize $ update ctx bs
-
-instance Serialize SHA384 where
-    get            = liftM Digest (getByteString digestSize)
-    put (Digest d) = putByteString d
-
-#endif
+import Crypto.Hash.Types (Digest(..))
 
 data Ctx = Ctx !ByteString
-data SHA384 = Digest !ByteString
-    deriving (Eq,Ord,Show)
-
+data SHA384
 
 {-# INLINE digestSize #-}
 digestSize :: Int
@@ -113,9 +90,9 @@ updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_sha384_update ptr (castPtr cs) (fromIntegral len))
 
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
+finalizeInternalIO :: Ptr Ctx -> IO (Digest SHA384)
 finalizeInternalIO ptr =
-    create digestSize (c_sha384_finalize ptr)
+    Digest `fmap` create digestSize (c_sha384_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -129,17 +106,17 @@ update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr 
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
-finalize :: Ctx -> ByteString
+finalize :: Ctx -> Digest SHA384
 finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
-hash :: ByteString -> ByteString
+hash :: ByteString -> Digest SHA384
 hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha384_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
-hashlazy :: L.ByteString -> ByteString
+hashlazy :: L.ByteString -> Digest SHA384
 hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha384_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

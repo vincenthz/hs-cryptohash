@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses, EmptyDataDecls #-}
 
 -- |
 -- Module      : Crypto.Hash.SHA512
@@ -17,15 +17,14 @@ module Crypto.Hash.SHA512
     , init     -- :: Ctx
     , init_t   -- :: Int -> Ctx
     , update   -- :: Ctx -> ByteString -> Ctx
-    , finalize -- :: Ctx -> ByteString
+    , finalize -- :: Ctx -> Digest SHA512
 
     -- * Single Pass hashing
-    , hash     -- :: ByteString -> ByteString
-    , hashlazy -- :: ByteString -> ByteString
+    , hash     -- :: ByteString -> Digest SHA512
+    , hashlazy -- :: ByteString -> Digest SHA512
     ) where
 
 import Prelude hiding (init)
-import System.IO.Unsafe (unsafePerformIO)
 import Foreign.Ptr
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
@@ -33,35 +32,12 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr)
+import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
-
-#ifdef HAVE_CRYPTOAPI
-
-import Control.Monad (liftM)
-import Data.Serialize (Serialize(..))
-import Data.Serialize.Get (getByteString)
-import Data.Serialize.Put (putByteString)
-import Data.Tagged (Tagged(..))
-import qualified Crypto.Classes as C (Hash(..))
-
-instance C.Hash Ctx SHA512 where
-    outputLength    = Tagged (64 * 8)
-    blockLength     = Tagged (128 * 8)
-    initialCtx      = init
-    updateCtx       = update
-    finalize ctx bs = Digest . finalize $ update ctx bs
-
-instance Serialize SHA512 where
-    get            = liftM Digest (getByteString digestSize)
-    put (Digest d) = putByteString d
-
-#endif
+import Crypto.Hash.Types (Digest(..))
 
 data Ctx = Ctx !ByteString
-data SHA512 = Digest !ByteString
-    deriving (Eq,Ord,Show)
-
+data SHA512
 
 {-# INLINE digestSize #-}
 digestSize :: Int
@@ -118,38 +94,37 @@ updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_sha512_update ptr (castPtr cs) (fromIntegral len))
 
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
+finalizeInternalIO :: Ptr Ctx -> IO (Digest SHA512)
 finalizeInternalIO ptr =
-    create digestSize (c_sha512_finalize ptr)
+    Digest `fmap` create digestSize (c_sha512_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafePerformIO $ withCtxNew $ c_sha512_init
+init = inlinePerformIO $ withCtxNew $ c_sha512_init
 
-{-# NOINLINE init_t #-}
 -- | init a context using FIPS 180-4 for truncated SHA512
 init_t :: Int -> Ctx
-init_t t = unsafePerformIO $ withCtxNew $ \ptr -> c_sha512_init_t ptr t
+init_t t = inlinePerformIO $ withCtxNew $ \ptr -> c_sha512_init_t ptr t
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
-finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize :: Ctx -> Digest SHA512
+finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
-hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hash :: ByteString -> Digest SHA512
+hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
-hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy :: L.ByteString -> Digest SHA512
+hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

@@ -18,6 +18,7 @@ import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
+import Crypto.Hash
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -25,34 +26,55 @@ v2 = "The quick brown fox jumps over the lazy cog"
 vectors = [ v0, v1, v2 ]
 
 data HashFct = HashFct
-    { fctHash   :: (B.ByteString -> B.ByteString)
-    , fctInc    :: ([B.ByteString] -> B.ByteString) }
+    { fctHash   :: (B.ByteString -> String)
+    , fctInc    :: ([B.ByteString] -> String) }
 
-hashinc i u f = f . foldl u i
+hashf :: (B.ByteString -> Digest b) -> B.ByteString -> String
+hashf f = digestToHexS . f
 
-md2Hash    = HashFct { fctHash = MD2.hash, fctInc = hashinc MD2.init MD2.update MD2.finalize }
-md4Hash    = HashFct { fctHash = MD4.hash, fctInc = hashinc MD4.init MD4.update MD4.finalize }
-md5Hash    = HashFct { fctHash = MD5.hash, fctInc = hashinc MD5.init MD5.update MD5.finalize }
+hashinc :: a -> (a -> B.ByteString -> a) -> (a -> Digest b) -> [B.ByteString] -> String
+hashinc i u f = digestToHexS . f . foldl u i
 
-sha1Hash   = HashFct { fctHash = SHA1.hash, fctInc = hashinc SHA1.init SHA1.update SHA1.finalize }
+md2Hash    = HashFct { fctHash = hashf MD2.hash
+                     , fctInc = hashinc MD2.init MD2.update MD2.finalize }
+md4Hash    = HashFct { fctHash = hashf MD4.hash
+                     , fctInc = hashinc MD4.init MD4.update MD4.finalize }
+md5Hash    = HashFct { fctHash = hashf MD5.hash
+                     , fctInc = hashinc MD5.init MD5.update MD5.finalize }
 
-sha224Hash = HashFct { fctHash = SHA224.hash, fctInc = hashinc SHA224.init SHA224.update SHA224.finalize }
-sha256Hash = HashFct { fctHash = SHA256.hash, fctInc = hashinc SHA256.init SHA256.update SHA256.finalize }
+sha1Hash   = HashFct { fctHash = hashf SHA1.hash
+                     , fctInc = hashinc SHA1.init SHA1.update SHA1.finalize }
 
-sha384Hash = HashFct { fctHash = SHA384.hash, fctInc = hashinc SHA384.init SHA384.update SHA384.finalize }
-sha512Hash = HashFct { fctHash = SHA512.hash, fctInc = hashinc SHA512.init SHA512.update SHA512.finalize }
-sha512_224Hash = HashFct { fctHash = SHA512t.hash 224, fctInc = hashinc (SHA512t.init 224) SHA512t.update SHA512t.finalize }
-sha512_256Hash = HashFct { fctHash = SHA512t.hash 256, fctInc = hashinc (SHA512t.init 256) SHA512t.update SHA512t.finalize }
+sha224Hash = HashFct { fctHash = hashf SHA224.hash
+                     , fctInc = hashinc SHA224.init SHA224.update SHA224.finalize }
+sha256Hash = HashFct { fctHash = digestToHexS . SHA256.hash
+                     , fctInc = hashinc SHA256.init SHA256.update SHA256.finalize }
 
-sha3Hash i = HashFct { fctHash = SHA3.hash i, fctInc = hashinc (SHA3.init i) SHA3.update SHA3.finalize }
+sha384Hash = HashFct { fctHash = hashf SHA384.hash
+                     , fctInc = hashinc SHA384.init SHA384.update SHA384.finalize }
+sha512Hash = HashFct { fctHash = hashf SHA512.hash
+                     , fctInc = hashinc SHA512.init SHA512.update SHA512.finalize }
 
-ripemd160Hash = HashFct { fctHash = RIPEMD160.hash, fctInc = hashinc RIPEMD160.init RIPEMD160.update RIPEMD160.finalize }
-tigerHash = HashFct { fctHash = Tiger.hash, fctInc = hashinc Tiger.init Tiger.update Tiger.finalize }
+sha512_224Hash = HashFct { fctHash = hashf (SHA512t.hash 224)
+                         , fctInc = hashinc (SHA512t.init 224) SHA512t.update SHA512t.finalize }
+sha512_256Hash = HashFct { fctHash = hashf (SHA512t.hash 256)
+                         , fctInc = hashinc (SHA512t.init 256) SHA512t.update SHA512t.finalize }
 
-skein256Hash x = HashFct { fctHash = Skein256.hash x, fctInc = hashinc (Skein256.init x) Skein256.update Skein256.finalize }
-skein512Hash x = HashFct { fctHash = Skein512.hash x, fctInc = hashinc (Skein512.init x) Skein512.update Skein512.finalize }
+sha3Hash i = HashFct { fctHash = hashf (SHA3.hash i)
+                     , fctInc = hashinc (SHA3.init i) SHA3.update SHA3.finalize }
 
-whirlpoolHash = HashFct { fctHash = Whirlpool.hash, fctInc = hashinc Whirlpool.init Whirlpool.update Whirlpool.finalize }
+ripemd160Hash = HashFct { fctHash = hashf RIPEMD160.hash
+                        , fctInc = hashinc RIPEMD160.init RIPEMD160.update RIPEMD160.finalize }
+tigerHash = HashFct { fctHash = hashf Tiger.hash
+                    , fctInc = hashinc Tiger.init Tiger.update Tiger.finalize }
+
+skein256Hash x = HashFct { fctHash = hashf (Skein256.hash x)
+                         , fctInc = hashinc (Skein256.init x) Skein256.update Skein256.finalize }
+skein512Hash x = HashFct { fctHash = hashf (Skein512.hash x)
+                         , fctInc = hashinc (Skein512.init x) Skein512.update Skein512.finalize }
+
+whirlpoolHash = HashFct { fctHash = hashf Whirlpool.hash
+                        , fctInc = hashinc Whirlpool.init Whirlpool.update Whirlpool.finalize }
 
 results :: [ (String, HashFct, [String]) ]
 results = [
@@ -151,6 +173,7 @@ results = [
         "10f8caabb5b179861da5e447d34b84d604e3eb81830880e1c2135ffc94580a47cb21f6243ec0053d58b1124d13af2090033659075ee718e0f111bb3f69fb24cf" ])
     ]
 
+{-
 hexalise s = concatMap (\c -> [ hex $ c `div` 16, hex $ c `mod` 16 ]) s
         where hex i
                 | i >= 0 && i <= 9   = fromIntegral (ord '0') + i
@@ -159,6 +182,7 @@ hexalise s = concatMap (\c -> [ hex $ c `div` 16, hex $ c `mod` 16 ]) s
 
 hexaliseB :: B.ByteString -> B.ByteString
 hexaliseB = B.pack . hexalise . B.unpack
+-}
 
 splitB l b =
     if B.length b > l
@@ -168,11 +192,13 @@ splitB l b =
         else    
             [ b ]
 
+{-
 showHash :: B.ByteString -> String
 showHash = map (toEnum.fromEnum) . hexalise . B.unpack
+-}
 
-runhash hash v = showHash $ (fctHash hash) $ v
-runhashinc hash v = showHash $ (fctInc hash) $ v
+runhash hash v = (fctHash hash) $ v
+runhashinc hash v = (fctInc hash) $ v
 
 makeTestAlg (name, hash, results) = concatMap maketest $ zip3 [0..] vectors results
     where

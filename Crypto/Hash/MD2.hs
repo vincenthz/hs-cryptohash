@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 -- |
 -- Module      : Crypto.Hash.MD2
@@ -16,11 +16,11 @@ module Crypto.Hash.MD2
     -- * Incremental hashing Functions
     , init     -- :: Ctx
     , update   -- :: Ctx -> ByteString -> Ctx
-    , finalize -- :: Ctx -> ByteString
+    , finalize -- :: Ctx -> Digest MD2
 
     -- * Single Pass hashing
-    , hash     -- :: ByteString -> ByteString
-    , hashlazy -- :: ByteString -> ByteString
+    , hash     -- :: ByteString -> Digest MD2
+    , hashlazy -- :: ByteString -> Digest MD2
     ) where
 
 import Prelude hiding (init)
@@ -33,33 +33,10 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
-
-#ifdef HAVE_CRYPTOAPI
-
-import Control.Monad (liftM)
-import Data.Serialize (Serialize(..))
-import Data.Serialize.Get (getByteString)
-import Data.Serialize.Put (putByteString)
-import Data.Tagged (Tagged(..))
-import qualified Crypto.Classes as C (Hash(..))
-
-instance C.Hash Ctx MD2 where
-    outputLength    = Tagged (16 * 8)
-    blockLength     = Tagged (16 * 8)
-    initialCtx      = init
-    updateCtx       = update
-    finalize ctx bs = Digest . finalize $ update ctx bs
-
-instance Serialize MD2 where
-    get            = liftM Digest (getByteString digestSize)
-    put (Digest d) = putByteString d
-
-#endif
+import Crypto.Hash.Types (Digest(..))
 
 data Ctx = Ctx !ByteString
-data MD2 = Digest !ByteString
-    deriving (Eq,Ord,Show)
-
+data MD2
 
 {-# INLINE digestSize #-}
 digestSize :: Int
@@ -113,9 +90,9 @@ updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_md2_update ptr (castPtr cs) (fromIntegral len))
 
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
+finalizeInternalIO :: Ptr Ctx -> IO (Digest MD2)
 finalizeInternalIO ptr =
-    create digestSize (c_md2_finalize ptr)
+    Digest `fmap` create digestSize (c_md2_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -129,17 +106,17 @@ update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr 
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
-finalize :: Ctx -> ByteString
+finalize :: Ctx -> Digest MD2
 finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
-hash :: ByteString -> ByteString
+hash :: ByteString -> Digest MD2
 hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_md2_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
-hashlazy :: L.ByteString -> ByteString
+hashlazy :: L.ByteString -> Digest MD2
 hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_md2_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

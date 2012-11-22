@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-
+{-# LANGUAGE EmptyDataDecls #-}
 -- |
 -- Module      : Crypto.Hash.SHA3
 -- License     : BSD-style
@@ -15,11 +15,11 @@ module Crypto.Hash.SHA3
     -- * Incremental hashing Functions
     , init     -- :: Int -> Ctx
     , update   -- :: Ctx -> ByteString -> Ctx
-    , finalize -- :: Ctx -> ByteString
+    , finalize -- :: Ctx -> Digest SHA3
 
     -- * Single Pass hashing
-    , hash     -- :: Int -> ByteString -> ByteString
-    , hashlazy -- :: Int -> ByteString -> ByteString
+    , hash     -- :: Int -> ByteString -> Digest SHA3
+    , hashlazy -- :: Int -> ByteString -> Digest SHA3
     ) where
 
 import Prelude hiding (init)
@@ -32,8 +32,10 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
+import Crypto.Hash.Types
 
 data Ctx = Ctx !ByteString
+data SHA3
 
 {-# INLINE sizeCtx #-}
 sizeCtx :: Int
@@ -89,9 +91,9 @@ updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_sha3_update ptr (castPtr cs) (fromIntegral len))
 
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
+finalizeInternalIO :: Ptr Ctx -> IO (Digest SHA3)
 finalizeInternalIO ptr =
-    peekHashlen ptr >>= \digestSize -> create digestSize (c_sha3_finalize ptr)
+    peekHashlen ptr >>= \digestSize -> (Digest `fmap` create digestSize (c_sha3_finalize ptr))
 
 {-# NOINLINE init #-}
 -- | init a context
@@ -105,17 +107,17 @@ update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr 
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
-finalize :: Ctx -> ByteString
+finalize :: Ctx -> Digest SHA3
 finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
-hash :: Int -> ByteString -> ByteString
+hash :: Int -> ByteString -> Digest SHA3
 hash hashlen d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha3_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
-hashlazy :: Int -> L.ByteString -> ByteString
+hashlazy :: Int -> L.ByteString -> Digest SHA3
 hashlazy hashlen l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha3_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
