@@ -79,8 +79,8 @@ Test-Suite test-kat
                    , bytestring
                    , HUnit
                    , QuickCheck >= 2
-                   , test-framework >= 0.3.3 && < 0.7
-                   , test-framework-quickcheck2 >= 0.2.9 && < 0.3
+                   , test-framework >= 0.3.3
+                   , test-framework-quickcheck2 >= 0.2.9
                    , test-framework-hunit
                    , cryptohash
 
