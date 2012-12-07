@@ -86,6 +86,12 @@ Benchmark bench-hashes
   type:              exitcode-stdio-1.0
   Build-depends:     base >= 4, bytestring, criterion, cryptohash
 
+Benchmark bench-api
+  Main-Is:           BenchAPI.hs
+  hs-source-dirs:    Bench
+  type:              exitcode-stdio-1.0
+  Build-depends:     base >= 4, bytestring, criterion, cryptohash, crypto-api
+
 source-repository head
   type:     git
   location: git://github.com/vincenthz/hs-cryptohash
