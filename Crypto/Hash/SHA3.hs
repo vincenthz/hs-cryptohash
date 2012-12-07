@@ -31,8 +31,9 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
+import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
+import System.IO.Unsafe (unsafeDupablePerformIO)
 
 #ifdef HAVE_CRYPTOAPI
 
@@ -56,7 +57,7 @@ instance Serialize SHA3 where
 
 #endif
 
-data Ctx = Ctx !ByteString
+newtype Ctx = Ctx ByteString
 data SHA3 = Digest !ByteString
     deriving (Eq,Ord,Show)
 
@@ -122,26 +123,26 @@ finalizeInternalIO ptr =
 {-# NOINLINE init #-}
 -- | init a context
 init :: Int -> Ctx
-init hashlen = inlinePerformIO $ withCtxNew $ \ptr -> c_sha3_init ptr (fromIntegral hashlen)
+init hashlen = unsafeDupablePerformIO $ withCtxNew $ \ptr -> c_sha3_init ptr (fromIntegral hashlen)
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = unsafeDupablePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: Int -> ByteString -> ByteString
-hash hashlen d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
+hash hashlen d = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha3_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: Int -> L.ByteString -> ByteString
-hashlazy hashlen l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy hashlen l = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha3_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

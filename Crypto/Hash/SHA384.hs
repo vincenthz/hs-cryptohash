@@ -31,8 +31,9 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
+import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
+import System.IO.Unsafe (unsafeDupablePerformIO)
 
 #ifdef HAVE_CRYPTOAPI
 
@@ -56,7 +57,7 @@ instance Serialize SHA384 where
 
 #endif
 
-data Ctx = Ctx !ByteString
+newtype Ctx = Ctx ByteString
 data SHA384 = Digest !ByteString
     deriving (Eq,Ord,Show)
 
@@ -119,26 +120,26 @@ finalizeInternalIO ptr = create digestSize (c_sha384_finalize ptr)
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = inlinePerformIO $ withCtxNew $ c_sha384_init
+init = unsafeDupablePerformIO $ withCtxNew $ c_sha384_init
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = unsafeDupablePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
+hash d = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha384_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy l = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha384_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
