@@ -24,10 +24,6 @@ extra-source-files:
   cbits/skein.h cbits/skein256.h cbits/skein512.h
   cbits/tiger.h cbits/whirlpool.h
 
-Flag benchmark
-  Description:       Build benchmark test
-  Default:           False
-
 Flag cryptoapi
   Description:       Defines crypto-api instances
   Default:           True
@@ -84,14 +80,11 @@ Test-Suite test-kat
                    , test-framework-hunit
                    , cryptohash
 
-Executable           Bench
+Benchmark bench-hashes
   Main-Is:           Bench.hs
   hs-source-dirs:    Bench
-  if flag(benchmark)
-    Buildable:       True
-    Build-depends:   base >= 4, bytestring, criterion, cryptohash
-  else
-    Buildable:       False
+  type:              exitcode-stdio-1.0
+  Build-depends:     base >= 4, bytestring, criterion, cryptohash
 
 source-repository head
   type:     git
