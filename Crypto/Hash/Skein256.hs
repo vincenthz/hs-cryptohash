@@ -24,7 +24,6 @@ module Crypto.Hash.Skein256
     ) where
 
 import Prelude hiding (init)
-import Foreign.C.Types
 import Foreign.Ptr
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
@@ -32,9 +31,8 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, inlinePerformIO, toForeignPtr)
+import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
-import Data.Bits
 
 #ifdef HAVE_CRYPTOAPI
 
