@@ -114,8 +114,7 @@ updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_md2_update ptr (castPtr cs) (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr =
-    create digestSize (c_md2_finalize ptr)
+finalizeInternalIO ptr = create digestSize (c_md2_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context

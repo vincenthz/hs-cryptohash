@@ -114,8 +114,7 @@ updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_sha256_update ptr (castPtr cs) (fromIntegral len))
 
 finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr =
-    create digestSize (c_sha256_finalize ptr)
+finalizeInternalIO ptr = create digestSize (c_sha256_finalize ptr)
 
 {-# NOINLINE init #-}
 -- | init a context
