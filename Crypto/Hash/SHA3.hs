@@ -73,6 +73,11 @@ peekHashlen ptr = peek iptr >>= \v -> return $! fromIntegral v
     where iptr :: Ptr Word32
           iptr = castPtr ptr
 
+{-# RULES "hash" forall b i. finalize (update (init i) b) = hash i b #-}
+{-# RULES "hash.list1" forall b i. finalize (updates (init i) [b]) = hash i b #-}
+{-# RULES "hashmany" forall b i. finalize (foldl update (init i) b) = hashlazy i (L.fromChunks b) #-}
+{-# RULES "hashlazy" forall b i. finalize (foldl update (init i) $ L.toChunks b) = hashlazy i b #-}
+
 {-# INLINE withByteStringPtr #-}
 withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
 withByteStringPtr b f =

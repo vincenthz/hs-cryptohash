@@ -30,6 +30,7 @@ import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
 import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString as B
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr)
@@ -70,6 +71,12 @@ digestSize = 32
 {-# INLINE sizeCtx #-}
 sizeCtx :: Int
 sizeCtx = 192
+
+{-# RULES "digestSize" B.length (finalize init) = digestSize #-}
+{-# RULES "hash" forall b. finalize (update init b) = hash b #-}
+{-# RULES "hash.list1" forall b. finalize (updates init [b]) = hash b #-}
+{-# RULES "hashmany" forall b. finalize (foldl update init b) = hashlazy (L.fromChunks b) #-}
+{-# RULES "hashlazy" forall b. finalize (foldl update init $ L.toChunks b) = hashlazy b #-}
 
 {-# INLINE withByteStringPtr #-}
 withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
