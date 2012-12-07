@@ -25,7 +25,6 @@ module Crypto.Hash.SHA512
     ) where
 
 import Prelude hiding (init)
-import System.IO.Unsafe (unsafePerformIO)
 import Foreign.Ptr
 import Foreign.ForeignPtr (withForeignPtr)
 import Foreign.Storable
@@ -33,7 +32,7 @@ import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr)
+import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
 
 #ifdef HAVE_CRYPTOAPI
@@ -105,14 +104,19 @@ withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 foreign import ccall unsafe "sha512.h sha512_init"
     c_sha512_init :: Ptr Ctx -> IO ()
 
-foreign import ccall unsafe "sha512.h sha512_init_t"
-    c_sha512_init_t :: Ptr Ctx -> Int -> IO ()
-
 foreign import ccall "sha512.h sha512_update"
     c_sha512_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
 foreign import ccall unsafe "sha512.h sha512_finalize"
     c_sha512_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
+
+foreign import ccall unsafe "sha512.h sha512_init_t"
+    c_sha512_init_t :: Ptr Ctx -> Int -> IO ()
+
+{-# NOINLINE init_t #-}
+-- | init a context using FIPS 180-4 for truncated SHA512
+init_t :: Int -> Ctx
+init_t t = inlinePerformIO $ withCtxNew $ \ptr -> c_sha512_init_t ptr t
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
@@ -124,31 +128,26 @@ finalizeInternalIO ptr = create digestSize (c_sha512_finalize ptr)
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafePerformIO $ withCtxNew $ c_sha512_init
-
-{-# NOINLINE init_t #-}
--- | init a context using FIPS 180-4 for truncated SHA512
-init_t :: Int -> Ctx
-init_t t = unsafePerformIO $ withCtxNew $ \ptr -> c_sha512_init_t ptr t
+init = inlinePerformIO $ withCtxNew $ c_sha512_init
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = inlinePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = inlinePerformIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hash d = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy l = inlinePerformIO $ withCtxNewThrow $ \ptr -> do
     c_sha512_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
