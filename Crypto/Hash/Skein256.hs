@@ -111,7 +111,6 @@ foreign import ccall "skein256.h skein256_update"
 foreign import ccall unsafe "skein256.h skein256_finalize"
     c_skein256_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
-
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
 updateInternalIO ptr d =
     unsafeUseAsCStringLen d (\(cs, len) -> c_skein256_update ptr (castPtr cs) (fromIntegral len))
