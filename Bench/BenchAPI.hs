@@ -4,6 +4,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import qualified Crypto.Hash.SHA1 as SHA1
 import qualified Crypto.Hash.SHA3 as SHA3
+import Crypto.Hash
 import qualified Crypto.Classes as CAPI
 
 main = do
@@ -17,16 +18,20 @@ main = do
         [ bcompare
             [ bench "sha1.hash 32" $ whnf SHA1.hash bs32
             , bench "sha1.incr 32" $ whnf (SHA1.finalize . SHA1.update SHA1.init) bs32
+            , bench "sha1.api 32"  $ whnf (digestToByteString . hashsha1) bs32
             , bench "sha1.capi 32" $ whnf (CAPI.hash' :: B.ByteString -> SHA1.SHA1) bs32
             ]
         , bcompare
             [ bench "sha1.hash 256" $ whnf SHA1.hash bs256
             , bench "sha1.incr 256" $ whnf (SHA1.finalize . SHA1.update SHA1.init) bs256
+            , bench "sha1.api 256"  $ whnf (digestToByteString . hashsha1) bs256
             , bench "sha1.capi 256" $ whnf (CAPI.hash' :: B.ByteString -> SHA1.SHA1) bs256
             ]
         , bcompare
             [ bench "sha1.hash 4096" $ whnf SHA1.hash bs4096
             , bench "sha1.incr 4096" $ whnf (SHA1.finalize . SHA1.update SHA1.init) bs4096
+            , bench "sha1.api 4096"  $ whnf (digestToByteString . hashsha1) bs4096
             , bench "sha1.capi 4096" $ whnf (CAPI.hash' :: B.ByteString -> SHA1.SHA1) bs4096
             ]
         ]
+    where hashsha1 = hash :: B.ByteString -> Digest SHA1

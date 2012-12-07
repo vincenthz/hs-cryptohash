@@ -36,7 +36,8 @@ Library
   if impl(ghc >= 7.2.1)
     Extensions:      Trustworthy
   Extensions:        ForeignFunctionInterface
-  Exposed-modules:   Crypto.Hash.Types
+  Exposed-modules:   Crypto.Hash
+                     Crypto.Hash.Types
                      Crypto.Hash.SHA1
                      Crypto.Hash.SHA224
                      Crypto.Hash.SHA256
