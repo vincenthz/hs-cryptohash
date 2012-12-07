@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-
 -- |
 -- Module      : Crypto.Hash.SHA512t
 -- License     : BSD-style
@@ -11,7 +9,6 @@
 --
 module Crypto.Hash.SHA512t
     ( Ctx(..)
-    --, SHA512t
 
     -- * Incremental hashing Functions
     , init     -- :: Ctx
