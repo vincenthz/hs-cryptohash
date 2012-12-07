@@ -16,6 +16,7 @@ module Crypto.Hash.Skein512
     -- * Incremental hashing Functions
     , init     -- :: Int -> Ctx
     , update   -- :: Ctx -> ByteString -> Ctx
+    , updates  -- :: Ctx -> [ByteString] -> Ctx
     , finalize -- :: Ctx -> ByteString
 
     -- * Single Pass hashing
@@ -129,6 +130,11 @@ init hashlen = unsafeDupablePerformIO $ withCtxNew $ \ptr -> c_skein512_init ptr
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
 update ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+
+{-# NOINLINE updates #-}
+-- | updates a context with multiples bytestring
+updates :: Ctx -> [ByteString] -> Ctx
+updates ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
