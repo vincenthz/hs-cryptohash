@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Crypto.Hash.SHA3
@@ -11,6 +11,7 @@
 --
 module Crypto.Hash.SHA3
     ( Ctx(..)
+    , SHA3
 
     -- * Incremental hashing Functions
     , init     -- :: Int -> Ctx
@@ -33,7 +34,32 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr, inlinePerformIO)
 import Data.Word
 
+#ifdef HAVE_CRYPTOAPI
+
+import Control.Monad (liftM)
+import Data.Serialize (Serialize(..))
+import Data.Serialize.Get (getByteString)
+import Data.Serialize.Put (putByteString)
+import Data.Tagged (Tagged(..))
+import qualified Crypto.Classes as C (Hash(..))
+
+instance C.Hash Ctx SHA3 where
+    outputLength    = Tagged (64 * 8)
+    blockLength     = Tagged (64 * 8)
+    initialCtx      = init (64 * 8)
+    updateCtx       = update
+    finalize ctx bs = Digest . finalize $ update ctx bs
+
+instance Serialize SHA3 where
+    get            = liftM Digest (getByteString 64)
+    put (Digest d) = putByteString d
+
+#endif
+
 data Ctx = Ctx !ByteString
+data SHA3 = Digest !ByteString
+    deriving (Eq,Ord,Show)
+
 
 {-# INLINE sizeCtx #-}
 sizeCtx :: Int
