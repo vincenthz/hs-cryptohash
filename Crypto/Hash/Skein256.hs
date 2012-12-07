@@ -65,11 +65,11 @@ data Skein256 = Digest !ByteString
 sizeCtx :: Int
 sizeCtx = 88
 
+{- return the number of bytes of output for the digest -}
 peekHashlen :: Ptr Ctx -> IO Int
-peekHashlen ptr = do
-    let iptr = castPtr ptr :: Ptr CUInt
-    a <- peek iptr
-    return ((fromIntegral a + 7) `shiftR` 3)
+peekHashlen ptr = peek iptr >>= \v -> return $! fromIntegral v
+    where iptr :: Ptr Word32
+          iptr = castPtr ptr
 
 {-# INLINE withByteStringPtr #-}
 withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
