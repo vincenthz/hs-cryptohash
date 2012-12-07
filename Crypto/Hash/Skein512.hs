@@ -60,8 +60,10 @@ data Ctx = Ctx !ByteString
 data Skein512 = Digest !ByteString
     deriving (Eq,Ord,Show)
 
+
+{-# INLINE sizeCtx #-}
 sizeCtx :: Int
-sizeCtx = 152
+sizeCtx = 160
 
 {- return the number of bytes of output for the digest -}
 peekHashlen :: Ptr Ctx -> IO Int

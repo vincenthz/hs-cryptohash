@@ -79,7 +79,7 @@ withByteStringPtr b f =
 
 {-# INLINE memcopy64 #-}
 memcopy64 :: Ptr Word64 -> Ptr Word64 -> IO ()
-memcopy64 dst src = mapM_ peekAndPoke [0..44]
+memcopy64 dst src = mapM_ peekAndPoke [0..(45-1)]
     where peekAndPoke i = peekElemOff src i >>= pokeElemOff dst i
 
 withCtxCopy :: Ctx -> (Ptr Ctx -> IO ()) -> IO Ctx
@@ -122,7 +122,7 @@ finalizeInternalIO ptr =
 {-# NOINLINE init #-}
 -- | init a context
 init :: Int -> Ctx
-init hashlen = inlinePerformIO $ withCtxNew (\ctx -> c_sha3_init ctx (fromIntegral hashlen))
+init hashlen = inlinePerformIO $ withCtxNew $ \ptr -> c_sha3_init ptr (fromIntegral hashlen)
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
