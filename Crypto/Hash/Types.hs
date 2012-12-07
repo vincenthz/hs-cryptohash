@@ -16,3 +16,4 @@ class HashAlgorithm a where
 newtype Context a = Context { contextToByteString :: ByteString }
 
 newtype Digest a = Digest { digestToByteString :: ByteString }
+    deriving (Eq,Ord)
