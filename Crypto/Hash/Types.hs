@@ -1,4 +1,3 @@
-{-# LANGUAGE ExistentialQuantification #-}
 module Crypto.Hash.Types
     ( HashAlgorithm(..)
     , Context(..)
