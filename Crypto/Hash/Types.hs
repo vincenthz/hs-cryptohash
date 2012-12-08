@@ -41,7 +41,8 @@ class HashAlgorithm a where
 newtype Context a = Context { contextToByteString :: ByteString }
 
 -- | Represent a digest for a given hash algorithm.
-newtype Digest a = Digest { digestToByteString :: ByteString }
+newtype Digest a = Digest { digestToByteString :: ByteString -- ^ Return the binary digest
+                          }
     deriving (Eq,Ord)
 
 instance Show (Digest a) where
