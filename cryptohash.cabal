@@ -5,7 +5,29 @@ Description:
     with performance close to the fastest implementations available in others languages.
     .
     The implementations are made in C with a haskell FFI wrapper that hide the C implementation.
-
+    .
+    Simple examples using the unified API:
+    .
+    > import Crypto.Hash
+    >
+    > sha1 :: ByteString -> Digest SHA1
+    > sha1 = hash
+    >
+    > hexSha3_512 :: ByteString -> String
+    > hexSha3_512 bs = show (hash bs :: Digest SHA3_512)
+    .
+    Simple examples using the module API:
+    .
+    > import qualified Crypto.Hash.SHA1 as SHA1
+    >
+    > main = putStrLn $ show $ SHA1.hash (Data.ByteString.pack [1..256])
+    .
+    > import qualified Crypto.Hash.SHA3 as SHA3
+    >
+    > main = putStrLn $ show $ digest
+    >   where digest = SHA3.finalize ctx
+    >         ctx    = foldl' SHA3.update iCtx (map Data.ByteString.pack [ [1,2,3], [4,5,6] ]
+    >         iCtx   = SHA3.init 224
 License:             BSD3
 License-file:        LICENSE
 Copyright:           Vincent Hanquez <vincent@snarc.org>
