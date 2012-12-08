@@ -2,13 +2,15 @@
 {-# LANGUAGE CPP #-}
 module Crypto.Hash
     (
+    -- * Types
       HashAlgorithm(..)
-    , hashUpdate
     , Context
     , Digest
+    -- * Functions
     , digestToByteString
     , hash
     , hashlazy
+    , hashUpdate
     -- * hash algorithms
     , MD2
     , MD4
@@ -53,12 +55,15 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 
+-- | run hashUpdates on one single bytestring and return the updated context.
 hashUpdate :: HashAlgorithm a => Context a -> ByteString -> Context a
 hashUpdate ctx b = hashUpdates ctx [b]
 
+-- | Hash a strict bytestring into a digest.
 hash :: HashAlgorithm a => ByteString -> Digest a
 hash bs = hashFinalize $ hashUpdate hashInit bs
 
+-- | Hash a lazy bytestring into a digest.
 hashlazy :: HashAlgorithm a => L.ByteString -> Digest a
 hashlazy lbs = hashFinalize $ hashUpdates hashInit (L.toChunks lbs)
 
