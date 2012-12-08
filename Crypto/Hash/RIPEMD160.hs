@@ -35,7 +35,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
-import System.IO.Unsafe (unsafeDupablePerformIO)
+import Crypto.Hash.Unsafe
 
 #ifdef HAVE_CRYPTOAPI
 
@@ -128,31 +128,31 @@ finalizeInternalIO ptr = create digestSize (c_ripemd160_finalize ptr)
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafeDupablePerformIO $ withCtxNew $ c_ripemd160_init
+init = unsafeFunc $ withCtxNew $ c_ripemd160_init
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE updates #-}
 -- | updates a context with multiples bytestring
 updates :: Ctx -> [ByteString] -> Ctx
-updates ctx d = unsafeDupablePerformIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
+updates ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafeDupablePerformIO $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = unsafeFunc $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
+hash d = unsafeFunc $ withCtxNewThrow $ \ptr -> do
     c_ripemd160_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafeDupablePerformIO $ withCtxNewThrow $ \ptr -> do
+hashlazy l = unsafeFunc $ withCtxNewThrow $ \ptr -> do
     c_ripemd160_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
