@@ -1,3 +1,12 @@
+-- |
+-- Module      : Crypto.Hash.Types
+-- License     : BSD-style
+-- Maintainer  : Vincent Hanquez <vincent@snarc.org>
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- Crypto hash types definitions
+--
 module Crypto.Hash.Types
     ( HashAlgorithm(..)
     , Context(..)

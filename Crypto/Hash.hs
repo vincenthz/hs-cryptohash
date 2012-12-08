@@ -1,5 +1,14 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
+-- |
+-- Module      : Crypto.Hash
+-- License     : BSD-style
+-- Maintainer  : Vincent Hanquez <vincent@snarc.org>
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- Crypto hash main module
+--
 module Crypto.Hash
     (
     -- * Types
