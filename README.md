@@ -54,7 +54,7 @@ common operations to create digests out of a bytestring and lazy bytestring.
 * hashlazy: create a digest (init+update+finalize) from a lazy bytestring
 
 More Type safety
-----------
+----------------
 
 A more type safe API is also available from Crypto.Hash. The API provides
 all the supported hashes in the same namespace, through unified functions.
