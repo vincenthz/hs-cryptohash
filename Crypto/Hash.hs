@@ -8,6 +8,7 @@ module Crypto.Hash
     , Digest
     -- * Functions
     , digestToByteString
+    , digestToHexByteString
     , hash
     , hashlazy
     , hashUpdate
@@ -37,6 +38,7 @@ module Crypto.Hash
     where
 
 import Crypto.Hash.Types
+import Crypto.Hash.Utils
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 
@@ -66,6 +68,10 @@ hash bs = hashFinalize $ hashUpdate hashInit bs
 -- | Hash a lazy bytestring into a digest.
 hashlazy :: HashAlgorithm a => L.ByteString -> Digest a
 hashlazy lbs = hashFinalize $ hashUpdates hashInit (L.toChunks lbs)
+
+-- | Return the hexadecimal (base16) bytestring of the digest
+digestToHexByteString :: Digest a -> ByteString
+digestToHexByteString = toHex . digestToByteString
 
 #define DEFINE_INSTANCE(NAME, MODULENAME) \
 data NAME; \

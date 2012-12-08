@@ -6,6 +6,8 @@ module Crypto.Hash.Types
     where
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BC
+import Crypto.Hash.Utils (toHex)
 
 -- | Class representing hashing algorithms.
 --
@@ -32,3 +34,6 @@ newtype Context a = Context { contextToByteString :: ByteString }
 -- | Represent a digest for a given hash algorithm.
 newtype Digest a = Digest { digestToByteString :: ByteString }
     deriving (Eq,Ord)
+
+instance Show (Digest a) where
+    show (Digest bs) = BC.unpack $ toHex bs
