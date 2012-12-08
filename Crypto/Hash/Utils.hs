@@ -1,4 +1,13 @@
 {-# LANGUAGE MagicHash, BangPatterns #-}
+-- |
+-- Module      : Crypto.Hash.Utils
+-- License     : BSD-style
+-- Maintainer  : Vincent Hanquez <vincent@snarc.org>
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- Crypto hash utility for hexadecimal
+--
 module Crypto.Hash.Utils
     ( toHex
     ) where
