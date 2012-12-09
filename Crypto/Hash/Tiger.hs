@@ -35,7 +35,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
-import Crypto.Hash.Unsafe
+import Crypto.Hash.Internal (unsafeDoIO)
 
 #ifdef HAVE_CRYPTOAPI
 
@@ -128,31 +128,31 @@ finalizeInternalIO ptr = create digestSize (c_tiger_finalize ptr)
 {-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafeFunc $ withCtxNew $ c_tiger_init
+init = unsafeDoIO $ withCtxNew $ c_tiger_init
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE updates #-}
 -- | updates a context with multiples bytestring
 updates :: Ctx -> [ByteString] -> Ctx
-updates ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
+updates ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafeFunc $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = unsafeDoIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafeFunc $ withCtxNewThrow $ \ptr -> do
+hash d = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
     c_tiger_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafeFunc $ withCtxNewThrow $ \ptr -> do
+hashlazy l = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
     c_tiger_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr

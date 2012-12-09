@@ -34,7 +34,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
-import Crypto.Hash.Unsafe
+import Crypto.Hash.Internal (unsafeDoIO)
 
 #ifdef HAVE_CRYPTOAPI
 
@@ -129,31 +129,31 @@ finalizeInternalIO ptr =
 {-# NOINLINE init #-}
 -- | init a context
 init :: Int -> Ctx
-init hashlen = unsafeFunc $ withCtxNew $ \ptr -> c_skein512_init ptr (fromIntegral hashlen)
+init hashlen = unsafeDoIO $ withCtxNew $ \ptr -> c_skein512_init ptr (fromIntegral hashlen)
 
 {-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
 
 {-# NOINLINE updates #-}
 -- | updates a context with multiples bytestring
 updates :: Ctx -> [ByteString] -> Ctx
-updates ctx d = unsafeFunc $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
+updates ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
 
 {-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafeFunc $ withCtxThrow ctx finalizeInternalIO
+finalize ctx = unsafeDoIO $ withCtxThrow ctx finalizeInternalIO
 
 {-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: Int -> ByteString -> ByteString
-hash hashlen d = unsafeFunc $ withCtxNewThrow $ \ptr -> do
+hash hashlen d = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
     c_skein512_init ptr (fromIntegral hashlen) >> updateInternalIO ptr d >> finalizeInternalIO ptr
 
 {-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: Int -> L.ByteString -> ByteString
-hashlazy hashlen l = unsafeFunc $ withCtxNewThrow $ \ptr -> do
+hashlazy hashlen l = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
     c_skein512_init ptr (fromIntegral hashlen) >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
