@@ -49,6 +49,7 @@ module Crypto.Hash
 import Crypto.Hash.Types
 import Crypto.Hash.Utils
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
 import qualified Crypto.Hash.MD2 as MD2
@@ -88,6 +89,7 @@ instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init } \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
+    ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize MODULENAME.init) } \
     };
 
 #define DEFINE_INSTANCE_LEN(NAME, MODULENAME, LEN) \
@@ -96,6 +98,7 @@ instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init LEN } \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
+    ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize (MODULENAME.init LEN)) } \
     };
 
 DEFINE_INSTANCE(MD2, MD2)

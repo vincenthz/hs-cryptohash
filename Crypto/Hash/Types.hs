@@ -37,6 +37,9 @@ class HashAlgorithm a where
     -- | Finalize a context and return a digest.
     hashFinalize :: Context a -> Digest a
 
+    -- | Try to convert a binary digest bytestring to a digest.
+    digestFromByteString :: ByteString -> Maybe (Digest a)
+
 -- | Represent a context for a given hash algorithm.
 newtype Context a = Context { contextToByteString :: ByteString }
 
