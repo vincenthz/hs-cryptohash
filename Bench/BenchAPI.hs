@@ -16,6 +16,12 @@ main = do
         !lbs64x4096 = (map (const (B.replicate 64 0)) [0..63])
     defaultMain
         [ bcompare
+            [ bench "sha1.hash 0" $ whnf SHA1.hash B.empty
+            , bench "sha1.incr 0" $ whnf (SHA1.finalize . SHA1.update SHA1.init) B.empty
+            , bench "sha1.api 0"  $ whnf (digestToByteString . hashsha1) B.empty
+            , bench "sha1.capi 0" $ whnf (CAPI.hash' :: B.ByteString -> SHA1.SHA1) B.empty
+            ]
+        , bcompare
             [ bench "sha1.hash 32" $ whnf SHA1.hash bs32
             , bench "sha1.incr 32" $ whnf (SHA1.finalize . SHA1.update SHA1.init) bs32
             , bench "sha1.api 32"  $ whnf (digestToByteString . hashsha1) bs32
