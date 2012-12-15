@@ -182,14 +182,14 @@ makeTestAlg (name, hash, results) = concatMap maketest $ zip3 [0..] vectors resu
         runtestinc i v = runhashinc hash $ splitB i $ B.pack $ map (toEnum.fromEnum) v
 
         maketest (i, v, r) =
-            [ testname i ~: testname i ~: r ~=? (runtest v),
-              testname i ~: testname i ~: r ~=? (runtestinc 1 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 2 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 3 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 4 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 5 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 9 v),
-              testname i ~: testname i ~: r ~=? (runtestinc 16 v) ]
+            [ testname i ~: r ~=? (runtest v),
+              testname i ~: r ~=? (runtestinc 1 v),
+              testname i ~: r ~=? (runtestinc 2 v),
+              testname i ~: r ~=? (runtestinc 3 v),
+              testname i ~: r ~=? (runtestinc 4 v),
+              testname i ~: r ~=? (runtestinc 5 v),
+              testname i ~: r ~=? (runtestinc 9 v),
+              testname i ~: r ~=? (runtestinc 16 v) ]
 
 mapTests :: [Test]
 mapTests = concatMap makeTestAlg results
