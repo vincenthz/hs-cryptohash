@@ -15,7 +15,7 @@ sha1F = ( "sha1"
         , CAPI.hash' :: B.ByteString -> SHA1.SHA1
         )
 
-sha512F = ( "sha1"
+sha512F = ( "sha512"
         , SHA512.hash
         , SHA512.finalize . SHA512.update SHA512.init
         , digestToByteString . (hash :: B.ByteString -> Digest SHA512)
