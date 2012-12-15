@@ -77,6 +77,7 @@ Library
                      Crypto.Hash.Whirlpool
                      Crypto.MAC.HMAC
   Other-modules:     Crypto.Hash.Utils
+                     Crypto.Hash.Utils.Cpu
                      Crypto.Hash.Internal
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse -fwarn-tabs
   C-sources:         cbits/sha1.c
@@ -92,6 +93,8 @@ Library
                      cbits/tiger.c
                      cbits/whirlpool.c
   Include-Dirs:      cbits
+  if (arch(i386) || arch(x86_64))
+    cpp-options: -DARCH_X86
 
 Test-Suite test-kat
   type:              exitcode-stdio-1.0
