@@ -18,6 +18,7 @@ import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
+import Crypto.Hash
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -194,6 +195,16 @@ makeTestAlg (name, hash, results) = concatMap maketest $ zip3 [0..] vectors resu
 mapTests :: [Test]
 mapTests = concatMap makeTestAlg results
 
-tests = TestList mapTests
+apiTests :: [Test]
+apiTests =
+    [ "sha1 api" ~: runhash sha1Hash B.empty ~=? show (hash B.empty :: Digest SHA1)
+    , "sha256 api" ~: runhash sha256Hash B.empty ~=? show (hash B.empty :: Digest SHA256)
+    , "sha512 api" ~: runhash sha512Hash B.empty ~=? show (hash B.empty :: Digest SHA512)
+    , "sha3-224 api" ~: runhash (sha3Hash 224) B.empty ~=? show (hash B.empty :: Digest SHA3_224)
+    , "sha3-256 api" ~: runhash (sha3Hash 256) B.empty ~=? show (hash B.empty :: Digest SHA3_256)
+    , "sha3-512 api" ~: runhash (sha3Hash 512) B.empty ~=? show (hash B.empty :: Digest SHA3_512)
+    ]
+
+tests = TestList (mapTests ++ apiTests)
 
 main = runTestTT tests
