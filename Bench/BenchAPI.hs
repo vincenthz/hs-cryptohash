@@ -15,7 +15,10 @@ main = do
     let !lbs64x256 = (map (const (B.replicate 64 0)) [0..3])
         !lbs64x4096 = (map (const (B.replicate 64 0)) [0..63])
     defaultMain
-        [ bcompare
+        [ bgroup "digest hex"
+            [ bench "hex" $ whnf digestToHexByteString (hashsha1 B.empty)
+            ]
+        , bcompare
             [ bench "sha1.hash 0" $ whnf SHA1.hash B.empty
             , bench "sha1.incr 0" $ whnf (SHA1.finalize . SHA1.update SHA1.init) B.empty
             , bench "sha1.api 0"  $ whnf (digestToByteString . hashsha1) B.empty
