@@ -1,4 +1,3 @@
-import Test.HUnit
 import Data.Char
 import Data.Bits
 import Data.Word
@@ -19,6 +18,11 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
+
+import Test.Framework (Test, defaultMain, testGroup)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.Framework.Providers.HUnit
+import Test.HUnit ((@=?))
 
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
@@ -175,36 +179,37 @@ showHash = map (toEnum.fromEnum) . hexalise . B.unpack
 runhash hash v = showHash $ (fctHash hash) $ v
 runhashinc hash v = showHash $ (fctInc hash) $ v
 
-makeTestAlg (name, hash, results) = concatMap maketest $ zip3 [0..] vectors results
+makeTestAlg (name, hash, results) = testGroup name $ concatMap maketest (zip3 [0..] vectors results)
     where
-        testname i = name ++ " " ++ show i
         runtest v = runhash hash $ B.pack $ map (toEnum.fromEnum) v
 
         runtestinc i v = runhashinc hash $ splitB i $ B.pack $ map (toEnum.fromEnum) v
 
         maketest (i, v, r) =
-            [ testname i ~: r ~=? (runtest v),
-              testname i ~: r ~=? (runtestinc 1 v),
-              testname i ~: r ~=? (runtestinc 2 v),
-              testname i ~: r ~=? (runtestinc 3 v),
-              testname i ~: r ~=? (runtestinc 4 v),
-              testname i ~: r ~=? (runtestinc 5 v),
-              testname i ~: r ~=? (runtestinc 9 v),
-              testname i ~: r ~=? (runtestinc 16 v) ]
+            [ testCase (show i ++ " one-pass") (r @=? runtest v)
+            , testCase (show i ++ " inc 1") (r @=? runtestinc 1 v)
+            , testCase (show i ++ " inc 2") (r @=? runtestinc 2 v)
+            , testCase (show i ++ " inc 3") (r @=? runtestinc 3 v)
+            , testCase (show i ++ " inc 4") (r @=? runtestinc 4 v)
+            , testCase (show i ++ " inc 5") (r @=? runtestinc 5 v)
+            , testCase (show i ++ " inc 9") (r @=? runtestinc 9 v)
+            , testCase (show i ++ " inc 16") (r @=? runtestinc 16 v)
+            ]
 
-mapTests :: [Test]
-mapTests = concatMap makeTestAlg results
+katTests :: [Test]
+katTests = map makeTestAlg results
 
 apiTests :: [Test]
 apiTests =
-    [ "sha1 api" ~: runhash sha1Hash B.empty ~=? show (hash B.empty :: Digest SHA1)
-    , "sha256 api" ~: runhash sha256Hash B.empty ~=? show (hash B.empty :: Digest SHA256)
-    , "sha512 api" ~: runhash sha512Hash B.empty ~=? show (hash B.empty :: Digest SHA512)
-    , "sha3-224 api" ~: runhash (sha3Hash 224) B.empty ~=? show (hash B.empty :: Digest SHA3_224)
-    , "sha3-256 api" ~: runhash (sha3Hash 256) B.empty ~=? show (hash B.empty :: Digest SHA3_256)
-    , "sha3-512 api" ~: runhash (sha3Hash 512) B.empty ~=? show (hash B.empty :: Digest SHA3_512)
+    [ testCase "sha1 api" (runhash sha1Hash B.empty @=? show (hash B.empty :: Digest SHA1))
+    , testCase "sha256 api" (runhash sha256Hash B.empty @=? show (hash B.empty :: Digest SHA256))
+    , testCase "sha512 api" (runhash sha512Hash B.empty @=? show (hash B.empty :: Digest SHA512))
+    , testCase "sha3-224 api" (runhash (sha3Hash 224) B.empty @=? show (hash B.empty :: Digest SHA3_224))
+    , testCase "sha3-256 api" (runhash (sha3Hash 256) B.empty @=? show (hash B.empty :: Digest SHA3_256))
+    , testCase "sha3-512 api" (runhash (sha3Hash 512) B.empty @=? show (hash B.empty :: Digest SHA3_512))
     ]
 
-tests = TestList (mapTests ++ apiTests)
-
-main = runTestTT tests
+main = defaultMain
+    [ testGroup "KATs" katTests
+    , testGroup "API" apiTests
+    ]
