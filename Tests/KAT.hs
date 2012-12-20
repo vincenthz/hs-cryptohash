@@ -1,7 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 import Data.Char
 import Data.Bits
 import Data.Word
+import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as BC
 import qualified Crypto.Hash.MD2 as MD2
 import qualified Crypto.Hash.MD4 as MD4
 import qualified Crypto.Hash.MD5 as MD5
@@ -18,12 +22,14 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
+import Crypto.MAC.HMAC
 
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit
 import Test.HUnit ((@=?))
 
+v0,v1,v2 :: ByteString
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
 v2 = "The quick brown fox jumps over the lazy cog"
@@ -165,6 +171,7 @@ hexalise s = concatMap (\c -> [ hex $ c `div` 16, hex $ c `mod` 16 ]) s
 hexaliseB :: B.ByteString -> B.ByteString
 hexaliseB = B.pack . hexalise . B.unpack
 
+splitB :: Int -> ByteString -> [ByteString]
 splitB l b =
     if B.length b > l
         then
@@ -181,9 +188,11 @@ runhashinc hash v = showHash $ (fctInc hash) $ v
 
 makeTestAlg (name, hash, results) = testGroup name $ concatMap maketest (zip3 [0..] vectors results)
     where
-        runtest v = runhash hash $ B.pack $ map (toEnum.fromEnum) v
+        runtest :: ByteString -> String
+        runtest v = runhash hash v
 
-        runtestinc i v = runhashinc hash $ splitB i $ B.pack $ map (toEnum.fromEnum) v
+        runtestinc :: Int -> ByteString -> String
+        runtestinc i v = runhashinc hash $ splitB i v
 
         maketest (i, v, r) =
             [ testCase (show i ++ " one-pass") (r @=? runtest v)
@@ -209,7 +218,38 @@ apiTests =
     , testCase "sha3-512 api" (runhash (sha3Hash 512) B.empty @=? show (hash B.empty :: Digest SHA3_512))
     ]
 
+
+data MACVector = MACVector { macKey :: ByteString
+                           , macSecret :: ByteString
+                           , macResult :: ByteString
+                           }
+
+md5MACVectors =
+    [ MACVector B.empty B.empty "\x74\xe6\xf7\x29\x8a\x9c\x2d\x16\x89\x35\xf5\x8c\x00\x1b\xad\x88"
+    , MACVector "key"   v1      "\x80\x07\x07\x13\x46\x3e\x77\x49\xb9\x0c\x2d\xc2\x49\x11\xe2\x75"
+    ]
+
+sha1MACVectors =
+    [ MACVector B.empty B.empty "\xfb\xdb\x1d\x1b\x18\xaa\x6c\x08\x32\x4b\x7d\x64\xb7\x1f\xb7\x63\x70\x69\x0e\x1d"
+    , MACVector "key"   v1      "\xde\x7c\x9b\x85\xb8\xb7\x8a\xa6\xbc\x8a\x7a\x36\xf7\x0a\x90\x70\x1c\x9d\xb4\xd9"
+    ]
+
+sha256MACVectors =
+    [ MACVector B.empty B.empty "\xb6\x13\x67\x9a\x08\x14\xd9\xec\x77\x2f\x95\xd7\x78\xc3\x5f\xc5\xff\x16\x97\xc4\x93\x71\x56\x53\xc6\xc7\x12\x14\x42\x92\xc5\xad"
+    , MACVector "key"   v1      "\xf7\xbc\x83\xf4\x30\x53\x84\x24\xb1\x32\x98\xe6\xaa\x6f\xb1\x43\xef\x4d\x59\xa1\x49\x46\x17\x59\x97\x47\x9d\xbc\x2d\x1a\x3c\xd8"
+    ]
+
+macTests :: [Test]
+macTests =
+    [ testGroup "hmac-md5" $ map (toMACTest (hash :: B.ByteString -> Digest MD5) 64) $ zip [0..] md5MACVectors
+    , testGroup "hmac-sha1" $ map (toMACTest (hash :: B.ByteString -> Digest SHA1) 64) $ zip [0..] sha1MACVectors
+    , testGroup "hmac-sha256" $ map (toMACTest (hash :: B.ByteString -> Digest SHA256) 64) $ zip [0..] sha256MACVectors
+    ]
+    where toMACTest hashF blockSize (i, macVector) =
+            testCase (show i) (macResult macVector @=? hmac hashF blockSize (macKey macVector) (macSecret macVector))
+
 main = defaultMain
     [ testGroup "KATs" katTests
     , testGroup "API" apiTests
+    , testGroup "MACs" macTests
     ]
