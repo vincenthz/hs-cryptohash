@@ -45,12 +45,17 @@ module Crypto.Hash
     , Skein512_384
     , Skein512_512
     , Whirlpool
+    -- * MAC algorithms
+    , HMAC(..)
+    , hmac
     )
     where
 
 import Crypto.Hash.Types
 import Crypto.Hash.Utils
 import Data.ByteString (ByteString)
+import Data.Bits (xor)
+import Data.List (foldl')
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
@@ -134,3 +139,26 @@ DEFINE_INSTANCE_LEN(Skein512_224, Skein512, 224)
 DEFINE_INSTANCE_LEN(Skein512_256, Skein512, 256)
 DEFINE_INSTANCE_LEN(Skein512_384, Skein512, 384)
 DEFINE_INSTANCE_LEN(Skein512_512, Skein512, 512)
+
+data HMAC a = HMAC { hmacToByteString :: ByteString -- ^ return the binary HMAC
+                   }
+
+instance Eq (HMAC a) where
+    (HMAC b1) == (HMAC b2)
+        | B.length b1 /= B.length b2 = False
+        | otherwise                  = foldl' (&&!) True $ B.zipWith (==) b1 b2
+            where True  &&! True  = True
+                  True  &&! False = False
+                  False &&! True  = False
+                  False &&! False = False
+
+
+-- | compute a MAC using the supplied hashing function
+hmac :: (ByteString -> Digest a) -> Int -> ByteString -> ByteString -> HMAC a
+hmac hashF blockSize secret msg = HMAC $ digestToByteString $ hashF $ B.append opad (digestToByteString $ hashF $ B.append ipad msg)
+    where opad = B.map (xor 0x5c) k'
+          ipad = B.map (xor 0x36) k'
+
+          k'  = B.append kt pad
+          kt  = if B.length secret > fromIntegral blockSize then digestToByteString (hashF secret) else secret
+          pad = B.replicate (fromIntegral blockSize - B.length kt) 0
