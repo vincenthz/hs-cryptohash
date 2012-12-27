@@ -157,7 +157,7 @@ instance Eq (HMAC a) where
 
 -- | compute a MAC using the supplied hashing function
 hmac :: HashFunctionBS a -- ^ Hash function to use
-     -> Int              -- ^ Block size in bytes
+     -> Int              -- ^ Block size in bytes of the hash function
      -> ByteString       -- ^ Secret key
      -> ByteString       -- ^ Message to MAC
      -> HMAC a
