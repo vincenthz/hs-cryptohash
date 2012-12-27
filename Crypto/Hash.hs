@@ -140,6 +140,9 @@ DEFINE_INSTANCE_LEN(Skein512_256, Skein512, 256)
 DEFINE_INSTANCE_LEN(Skein512_384, Skein512, 384)
 DEFINE_INSTANCE_LEN(Skein512_512, Skein512, 512)
 
+-- | Represent an HMAC that is phantom types with the hash used to produce the mac.
+--
+-- The Eq instance is constant time.
 data HMAC a = HMAC { hmacToByteString :: ByteString -- ^ return the binary HMAC
                    }
 
@@ -152,9 +155,12 @@ instance Eq (HMAC a) where
                   False &&! True  = False
                   False &&! False = False
 
-
 -- | compute a MAC using the supplied hashing function
-hmac :: (ByteString -> Digest a) -> Int -> ByteString -> ByteString -> HMAC a
+hmac :: HashFunctionBS a -- ^ Hash function to use
+     -> Int              -- ^ Block size in bytes
+     -> ByteString       -- ^ Secret key
+     -> ByteString       -- ^ Message to MAC
+     -> HMAC a
 hmac hashF blockSize secret msg = HMAC $ digestToByteString $ hashF $ B.append opad (digestToByteString $ hashF $ B.append ipad msg)
     where opad = B.map (xor 0x5c) k'
           ipad = B.map (xor 0x36) k'
