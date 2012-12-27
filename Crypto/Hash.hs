@@ -13,6 +13,8 @@ module Crypto.Hash
     (
     -- * Types
       HashAlgorithm(..)
+    , HashFunctionBS
+    , HashFunctionLBS
     , Context
     , Digest
     -- * Functions
@@ -66,6 +68,12 @@ import qualified Crypto.Hash.Tiger as Tiger
 import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
+
+-- | Alias to a single pass hash function that operate on a strict bytestring
+type HashFunctionBS a = ByteString -> Digest a
+
+-- | Alias to a single pass hash function that operate on a lazy bytestring
+type HashFunctionLBS a = L.ByteString -> Digest a
 
 -- | run hashUpdates on one single bytestring and return the updated context.
 hashUpdate :: HashAlgorithm a => Context a -> ByteString -> Context a
