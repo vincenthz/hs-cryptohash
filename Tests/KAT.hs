@@ -22,7 +22,7 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
-import Crypto.MAC.HMAC
+import qualified Crypto.MAC.HMAC as HMAC
 
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -241,12 +241,12 @@ sha256MACVectors =
 
 macTests :: [Test]
 macTests =
-    [ testGroup "hmac-md5" $ map (toMACTest (hash :: B.ByteString -> Digest MD5) 64) $ zip [0..] md5MACVectors
-    , testGroup "hmac-sha1" $ map (toMACTest (hash :: B.ByteString -> Digest SHA1) 64) $ zip [0..] sha1MACVectors
-    , testGroup "hmac-sha256" $ map (toMACTest (hash :: B.ByteString -> Digest SHA256) 64) $ zip [0..] sha256MACVectors
+    [ testGroup "hmac-md5" $ map (toMACTest MD5.hash 64) $ zip [0..] md5MACVectors
+    , testGroup "hmac-sha1" $ map (toMACTest SHA1.hash 64) $ zip [0..] sha1MACVectors
+    , testGroup "hmac-sha256" $ map (toMACTest SHA256.hash 64) $ zip [0..] sha256MACVectors
     ]
     where toMACTest hashF blockSize (i, macVector) =
-            testCase (show i) (macResult macVector @=? hmac hashF blockSize (macKey macVector) (macSecret macVector))
+            testCase (show i) (macResult macVector @=? HMAC.hmac hashF blockSize (macKey macVector) (macSecret macVector))
 
 main = defaultMain
     [ testGroup "KATs" katTests
