@@ -192,6 +192,7 @@ void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 		x[j] = ctx->h[j];
 	/* threefish in counter mode, 0 for 1st 64 bytes, 1 for 2nd 64 bytes, .. */
 	for (i = 0; i*64 < outsize; i++) {
+		uint64_t w[8];
 		*((uint64_t *) ctx->buf) = cpu_to_le64(i);
 		SET_TYPE(ctx, FLAG_FIRST | FLAG_FINAL | FLAG_TYPE(TYPE_OUT));
 		skein512_do_chunk(ctx, (uint64_t *) ctx->buf, sizeof(uint64_t));
@@ -199,8 +200,8 @@ void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 		n = outsize - i * 64;
 		if (n >= 64) n = 64;
 
-		/* FIXME should be little endian array copy ? */
-		memcpy(out + i*64, ctx->h, n);
+		cpu_to_le64_array(w, ctx->h, 8);
+		memcpy(out + i*64, w, n);
 
 		/* restore h[0--7] */
 		for (j = 0; j < 8; j++)
