@@ -56,7 +56,7 @@ static inline void sha3_do_chunk(uint64_t state[25], uint64_t buf[], int bufsz)
 
 	/* merge buf with state */
 	for (i = 0; i < bufsz; i++)
-		state[i] ^= buf[i];
+		state[i] ^= le64_to_cpu(buf[i]);
 
 	/* run keccak rounds */
 	for (r = 0; r < KECCAK_NB_ROUNDS; r++) {
@@ -137,6 +137,8 @@ void sha3_update(struct sha3_ctx *ctx, uint8_t *data, uint32_t len)
 
 void sha3_finalize(struct sha3_ctx *ctx, uint8_t *out)
 {
+	uint64_t w[25];
+
 	/* add the 10*1 padding */
 	ctx->buf[ctx->bufindex++] = 1;
 	memset(ctx->buf + ctx->bufindex, 0, ctx->bufsz - ctx->bufindex);
@@ -146,5 +148,6 @@ void sha3_finalize(struct sha3_ctx *ctx, uint8_t *out)
 	sha3_do_chunk(ctx->state, (uint64_t *) ctx->buf, ctx->bufsz / 8);
 
 	/* output */
-	memcpy(out, ctx->state, ctx->hashlen);
+	cpu_to_le64_array(w, ctx->state, 25);
+	memcpy(out, w, ctx->hashlen);
 }
