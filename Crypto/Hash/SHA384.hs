@@ -60,9 +60,17 @@ instance Serialize SHA384 where
 #endif
 
 newtype Ctx = Ctx ByteString
+
+{-# DEPRECATED SHA384
+        ["Future cryptohash versions will not export crypto-api hash instances here."
+        ,"you can either :"
+        ,"  - carry using cryptoapi types and definitions by using the"
+        ,"    cryptohash-cryptoapi package and importing Crypto.Hash.CryptoAPI"
+        ,"    instead of Crypto.Hash.SHA384."
+        ,"  - use cryptohash's centralized API by importing Crypto.Hash"
+        ] #-}
 data SHA384 = Digest !ByteString
     deriving (Eq,Ord,Show)
-
 
 {-# INLINE digestSize #-}
 digestSize :: Int
