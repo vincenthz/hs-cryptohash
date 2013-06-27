@@ -11,10 +11,14 @@ module Crypto.Hash.Types
     ( HashAlgorithm(..)
     , Context(..)
     , Digest(..)
+    -- * deprecated
+    , contextToByteString
+    , digestToByteString
     )
     where
 
 import Data.ByteString (ByteString)
+import Data.Byteable
 import qualified Data.ByteString.Char8 as BC
 import Crypto.Hash.Utils (toHex)
 
@@ -41,12 +45,25 @@ class HashAlgorithm a where
     digestFromByteString :: ByteString -> Maybe (Digest a)
 
 -- | Represent a context for a given hash algorithm.
-newtype Context a = Context { contextToByteString :: ByteString }
+newtype Context a = Context ByteString
+
+instance Byteable (Context a) where
+    toBytes (Context bs) = bs
+
+-- | return the binary bytestring. deprecated use toBytes.
+contextToByteString :: Context a -> ByteString
+contextToByteString = toBytes
 
 -- | Represent a digest for a given hash algorithm.
-newtype Digest a = Digest { digestToByteString :: ByteString -- ^ Return the binary digest
-                          }
+newtype Digest a = Digest ByteString
     deriving (Eq,Ord)
+
+instance Byteable (Digest a) where
+    toBytes (Digest bs) = bs
+
+-- | return the binary bytestring. deprecated use toBytes.
+digestToByteString :: Digest a -> ByteString
+digestToByteString = toBytes
 
 instance Show (Digest a) where
     show (Digest bs) = BC.unpack $ toHex bs

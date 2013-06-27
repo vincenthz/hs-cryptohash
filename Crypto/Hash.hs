@@ -54,8 +54,8 @@ module Crypto.Hash
 import Crypto.Hash.Types
 import Crypto.Hash.Utils
 import Data.ByteString (ByteString)
+import Data.Byteable
 import Data.Bits (xor)
-import Data.List (foldl')
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
@@ -94,7 +94,7 @@ hashlazy lbs = hashFinalize $ hashUpdates hashInit (L.toChunks lbs)
 
 -- | Return the hexadecimal (base16) bytestring of the digest
 digestToHexByteString :: Digest a -> ByteString
-digestToHexByteString = toHex . digestToByteString
+digestToHexByteString = toHex . toBytes
 
 #define DEFINE_INSTANCE(NAME, MODULENAME) \
 data NAME; \
@@ -140,20 +140,16 @@ DEFINE_INSTANCE_LEN(Skein512_256, Skein512, 256)
 DEFINE_INSTANCE_LEN(Skein512_384, Skein512, 384)
 DEFINE_INSTANCE_LEN(Skein512_512, Skein512, 512)
 
--- | Represent an HMAC that is phantom types with the hash used to produce the mac.
+-- | Represent an HMAC that is a phantom type with the hash used to produce the mac.
 --
 -- The Eq instance is constant time.
-data HMAC a = HMAC { hmacToByteString :: ByteString -- ^ return the binary HMAC
-                   }
+data HMAC a = HMAC ByteString
+
+instance Byteable (HMAC a) where
+    toBytes (HMAC b) = b
 
 instance Eq (HMAC a) where
-    (HMAC b1) == (HMAC b2)
-        | B.length b1 /= B.length b2 = False
-        | otherwise                  = foldl' (&&!) True $ B.zipWith (==) b1 b2
-            where True  &&! True  = True
-                  True  &&! False = False
-                  False &&! True  = False
-                  False &&! False = False
+    (HMAC b1) == (HMAC b2) = constEqBytes b1 b2
 
 -- | compute a MAC using the supplied hashing function
 hmac :: HashFunctionBS a -- ^ Hash function to use
@@ -161,10 +157,10 @@ hmac :: HashFunctionBS a -- ^ Hash function to use
      -> ByteString       -- ^ Secret key
      -> ByteString       -- ^ Message to MAC
      -> HMAC a
-hmac hashF blockSize secret msg = HMAC $ digestToByteString $ hashF $ B.append opad (digestToByteString $ hashF $ B.append ipad msg)
+hmac hashF blockSize secret msg = HMAC $ toBytes $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
     where opad = B.map (xor 0x5c) k'
           ipad = B.map (xor 0x36) k'
 
           k'  = B.append kt pad
-          kt  = if B.length secret > fromIntegral blockSize then digestToByteString (hashF secret) else secret
+          kt  = if B.length secret > fromIntegral blockSize then toBytes (hashF secret) else secret
           pad = B.replicate (fromIntegral blockSize - B.length kt) 0
