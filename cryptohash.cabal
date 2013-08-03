@@ -20,7 +20,7 @@ Description:
     .
     > import qualified Crypto.Hash.SHA1 as SHA1
     >
-    > main = putStrLn $ show $ SHA1.hash (Data.ByteString.pack [1..256])
+    > main = putStrLn $ show $ SHA1.hash (Data.ByteString.pack [0..255])
     .
     > import qualified Crypto.Hash.SHA3 as SHA3
     >
