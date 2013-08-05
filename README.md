@@ -42,7 +42,7 @@ of a typical hash:
 * finalize: finalize the context and returns a digest bytestring.
 
 all those operations are completely pure, and instead of changing the
-context as usual in others language, it re-allocate a new context each time.
+context as usual in others language, it re-allocates a new context each time.
 
 One Pass API
 ------------
@@ -63,7 +63,7 @@ It introduces 2 new types, the Context type and the Digest type.
 Both those types are parametrized with the HashAlgorithm used.
 
 The API is very similar to each single hash module, except the types are
-slightly differents.
+slightly different.
 
     import Crypto.Hash
 
@@ -84,5 +84,5 @@ slightly differents.
 Performance
 -----------
 
-Cryptohash uses C implementations to provides maximum performance.
+Cryptohash uses C implementations to provide maximum performance.
 see the cbits directory for more information
