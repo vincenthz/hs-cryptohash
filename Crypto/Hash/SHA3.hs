@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 -- |
 -- Module      : Crypto.Hash.SHA3
@@ -11,7 +11,6 @@
 --
 module Crypto.Hash.SHA3
     ( Ctx(..)
-    , SHA3
 
     -- * Incremental hashing Functions
     , init     -- :: Int -> Ctx
@@ -36,40 +35,7 @@ import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
 import Crypto.Hash.Internal (unsafeDoIO)
 
-#ifdef HAVE_CRYPTOAPI
-
-import Control.Monad (liftM)
-import Data.Serialize (Serialize(..))
-import Data.Serialize.Get (getByteString)
-import Data.Serialize.Put (putByteString)
-import Data.Tagged (Tagged(..))
-import qualified Crypto.Classes as C (Hash(..))
-
-instance C.Hash Ctx SHA3 where
-    outputLength    = Tagged (64 * 8)
-    blockLength     = Tagged (64 * 8)
-    initialCtx      = init (64 * 8)
-    updateCtx       = update
-    finalize ctx bs = Digest . finalize $ update ctx bs
-
-instance Serialize SHA3 where
-    get            = liftM Digest (getByteString 64)
-    put (Digest d) = putByteString d
-
-#endif
-
 newtype Ctx = Ctx ByteString
-
-{-# DEPRECATED SHA3
-        ["Future cryptohash versions will not export crypto-api hash instances here."
-        ,"you can either :"
-        ,"  - carry using cryptoapi types and definitions by using the"
-        ,"    cryptohash-cryptoapi package and importing Crypto.Hash.CryptoAPI"
-        ,"    instead of Crypto.Hash.SHA3."
-        ,"  - use cryptohash's centralized API by importing Crypto.Hash"
-        ] #-}
-data SHA3 = Digest !ByteString
-    deriving (Eq,Ord,Show)
 
 {-# INLINE sizeCtx #-}
 sizeCtx :: Int

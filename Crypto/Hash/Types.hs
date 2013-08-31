@@ -62,6 +62,7 @@ instance Byteable (Digest a) where
     toBytes (Digest bs) = bs
 
 -- | return the binary bytestring. deprecated use toBytes.
+{-# DEPRECATED digestToByteString "use toBytes from byteable:Data.Byteable" #-}
 digestToByteString :: Digest a -> ByteString
 digestToByteString = toBytes
 
