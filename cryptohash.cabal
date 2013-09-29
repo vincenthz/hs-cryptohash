@@ -38,13 +38,13 @@ Category:            Data, Cryptography
 Build-Type:          Simple
 Cabal-Version:       >=1.8
 Homepage:            http://github.com/vincenthz/hs-cryptohash
-data-files:          README.md
 
 extra-source-files:
   cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
   cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h cbits/sha3.h
   cbits/skein.h cbits/skein256.h cbits/skein512.h
   cbits/tiger.h cbits/whirlpool.h
+  README.md
 
 Library
   Build-Depends:     base >= 4 && < 6, bytestring, byteable, ghc-prim
