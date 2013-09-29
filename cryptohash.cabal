@@ -95,6 +95,7 @@ Test-Suite test-kat
   Main-Is:           KAT.hs
   Build-depends:     base >= 4 && < 5
                    , bytestring
+                   , byteable
                    , HUnit
                    , QuickCheck >= 2
                    , test-framework >= 0.3.3

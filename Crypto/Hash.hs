@@ -158,15 +158,17 @@ instance Eq (HMAC a) where
     (HMAC b1) == (HMAC b2) = constEqBytes b1 b2
 
 -- | compute a MAC using the supplied hashing function
-hmac :: HashFunctionBS a -- ^ Hash function to use
-     -> Int              -- ^ Block size in bytes of the hash function
+hmac :: HashAlgorithm a
+     => a                -- ^ Hash algorithm to use
      -> ByteString       -- ^ Secret key
      -> ByteString       -- ^ Message to MAC
      -> HMAC a
-hmac hashF blockSize secret msg = HMAC $ toBytes $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
+hmac hashAlg secret msg = HMAC $ toBytes $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
     where opad = B.map (xor 0x5c) k'
           ipad = B.map (xor 0x36) k'
 
           k'  = B.append kt pad
           kt  = if B.length secret > fromIntegral blockSize then toBytes (hashF secret) else secret
           pad = B.replicate (fromIntegral blockSize - B.length kt) 0
+          blockSize = hashBlockSize hashAlg
+          hashF = hashFinalize . hashUpdate (hashInitAlg hashAlg)

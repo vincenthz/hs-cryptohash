@@ -4,6 +4,7 @@ import Data.Char
 import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
+import Data.Byteable
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Crypto.Hash.MD2 as MD2
@@ -22,7 +23,6 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
-import qualified Crypto.MAC.HMAC as HMAC
 
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -239,14 +239,37 @@ sha256MACVectors =
     , MACVector "key"   v1      "\xf7\xbc\x83\xf4\x30\x53\x84\x24\xb1\x32\x98\xe6\xaa\x6f\xb1\x43\xef\x4d\x59\xa1\x49\x46\x17\x59\x97\x47\x9d\xbc\x2d\x1a\x3c\xd8"
     ]
 
+sha3_key1 = "\x4a\x65\x66\x65"
+sha3_data1 = "\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20\x6e\x6f\x74\x68\x69\x6e\x67\x3f"
+
+sha3_224_MAC_Vectors =
+    [ MACVector sha3_key1 sha3_data1 "\xe8\x24\xfe\xc9\x6c\x07\x4f\x22\xf9\x92\x35\xbb\x94\x2d\xa1\x98\x26\x64\xab\x69\x2c\xa8\x50\x10\x53\xcb\xd4\x14"
+    ]
+
+sha3_256_MAC_Vectors =
+    [  MACVector sha3_key1 sha3_data1 "\xaa\x9a\xed\x44\x8c\x7a\xbc\x8b\x5e\x32\x6f\xfa\x6a\x01\xcd\xed\xf7\xb4\xb8\x31\x88\x14\x68\xc0\x44\xba\x8d\xd4\x56\x63\x69\xa1"
+    ]
+
+sha3_384_MAC_Vectors =
+    [ MACVector sha3_key1 sha3_data1 "\x5a\xf5\xc9\xa7\x7a\x23\xa6\xa9\x3d\x80\x64\x9e\x56\x2a\xb7\x7f\x4f\x35\x52\xe3\xc5\xca\xff\xd9\x3b\xdf\x8b\x3c\xfc\x69\x20\xe3\x02\x3f\xc2\x67\x75\xd9\xdf\x1f\x3c\x94\x61\x31\x46\xad\x2c\x9d"
+    ]
+
+sha3_512_MAC_Vectors =
+    [ MACVector sha3_key1 sha3_data1 "\xc2\x96\x2e\x5b\xbe\x12\x38\x00\x78\x52\xf7\x9d\x81\x4d\xbb\xec\xd4\x68\x2e\x6f\x09\x7d\x37\xa3\x63\x58\x7c\x03\xbf\xa2\xeb\x08\x59\xd8\xd9\xc7\x01\xe0\x4c\xec\xec\xfd\x3d\xd7\xbf\xd4\x38\xf2\x0b\x8b\x64\x8e\x01\xbf\x8c\x11\xd2\x68\x24\xb9\x6c\xeb\xbd\xcb"
+    ]
+
 macTests :: [Test]
 macTests =
-    [ testGroup "hmac-md5" $ map (toMACTest MD5.hash 64) $ zip [0..] md5MACVectors
-    , testGroup "hmac-sha1" $ map (toMACTest SHA1.hash 64) $ zip [0..] sha1MACVectors
-    , testGroup "hmac-sha256" $ map (toMACTest SHA256.hash 64) $ zip [0..] sha256MACVectors
+    [ testGroup "hmac-md5" $ map (toMACTest MD5) $ zip [0..] md5MACVectors
+    , testGroup "hmac-sha1" $ map (toMACTest SHA1) $ zip [0..] sha1MACVectors
+    , testGroup "hmac-sha256" $ map (toMACTest SHA256) $ zip [0..] sha256MACVectors
+    , testGroup "hmac-sha3-224" $ map (toMACTest SHA3_224) $ zip [0..] sha3_224_MAC_Vectors
+    , testGroup "hmac-sha3-256" $ map (toMACTest SHA3_256) $ zip [0..] sha3_256_MAC_Vectors
+    , testGroup "hmac-sha3-384" $ map (toMACTest SHA3_384) $ zip [0..] sha3_384_MAC_Vectors
+    , testGroup "hmac-sha3-512" $ map (toMACTest SHA3_512) $ zip [0..] sha3_512_MAC_Vectors
     ]
-    where toMACTest hashF blockSize (i, macVector) =
-            testCase (show i) (macResult macVector @=? HMAC.hmac hashF blockSize (macKey macVector) (macSecret macVector))
+    where toMACTest hashAlg (i, macVector) =
+            testCase (show i) (macResult macVector @=? toBytes (hmac hashAlg (macKey macVector) (macSecret macVector)))
 
 main = defaultMain
     [ testGroup "KATs" katTests
