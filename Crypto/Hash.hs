@@ -22,6 +22,7 @@ module Crypto.Hash
     , hash
     , hashlazy
     , hashUpdate
+    , hashInitAlg
     -- * hash algorithms
     , MD2(..)
     , MD4(..)
@@ -138,6 +139,10 @@ DEFINE_INSTANCE_LEN(Skein512_224, Skein512, 224)
 DEFINE_INSTANCE_LEN(Skein512_256, Skein512, 256)
 DEFINE_INSTANCE_LEN(Skein512_384, Skein512, 384)
 DEFINE_INSTANCE_LEN(Skein512_512, Skein512, 512)
+
+-- | Initialize a new context for a specified hash algorithm
+hashInitAlg :: HashAlgorithm alg => alg -> Context alg
+hashInitAlg _ = hashInit
 
 -- | Represent an HMAC that is a phantom type with the hash used to produce the mac.
 --
