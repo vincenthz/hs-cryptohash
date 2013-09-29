@@ -100,6 +100,7 @@ digestToHexByteString = toHex . toBytes
 data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init } \
+    ; hashBlockSize NAME = BLOCKSIZE \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
     ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize MODULENAME.init) } \
@@ -109,6 +110,7 @@ instance HashAlgorithm NAME where \
 data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init LEN } \
+    ; hashBlockSize NAME = BLOCKSIZE \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
     ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize (MODULENAME.init LEN)) } \

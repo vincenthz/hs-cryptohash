@@ -31,6 +31,9 @@ import Crypto.Hash.Utils (toHex)
 --   finalize : finalize the context into a digest
 --
 class HashAlgorithm a where
+    -- | Block size in bytes the hash algorithm operates on
+    hashBlockSize :: a -> Int
+
     -- | Initialize a new context for this hash algorithm
     hashInit     :: Context a
 
