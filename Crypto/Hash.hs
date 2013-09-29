@@ -149,13 +149,13 @@ hashInitAlg _ = hashInit
 -- | Represent an HMAC that is a phantom type with the hash used to produce the mac.
 --
 -- The Eq instance is constant time.
-data HMAC a = HMAC ByteString
+newtype HMAC a = HMAC { hmacGetDigest :: Digest a }
 
 instance Byteable (HMAC a) where
-    toBytes (HMAC b) = b
+    toBytes (HMAC b) = toBytes b
 
 instance Eq (HMAC a) where
-    (HMAC b1) == (HMAC b2) = constEqBytes b1 b2
+    (HMAC b1) == (HMAC b2) = constEqBytes (toBytes b1) (toBytes b2)
 
 -- | compute a MAC using the supplied hashing function
 hmac :: HashAlgorithm a
@@ -163,7 +163,7 @@ hmac :: HashAlgorithm a
      -> ByteString       -- ^ Secret key
      -> ByteString       -- ^ Message to MAC
      -> HMAC a
-hmac hashAlg secret msg = HMAC $ toBytes $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
+hmac hashAlg secret msg = HMAC $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
     where opad = B.map (xor 0x5c) k'
           ipad = B.map (xor 0x36) k'
 
