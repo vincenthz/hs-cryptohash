@@ -109,6 +109,12 @@ Benchmark bench-hashes
   type:              exitcode-stdio-1.0
   Build-depends:     base >= 4, bytestring, criterion, cryptohash
 
+Benchmark bench-hmac
+  Main-Is:           BenchHMAC.hs
+  hs-source-dirs:    Bench
+  type:              exitcode-stdio-1.0
+  Build-depends:     base >= 4, bytestring, criterion, cryptohash, byteable
+
 Benchmark bench-api
   Main-Is:           BenchAPI.hs
   hs-source-dirs:    Bench
