@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
 -- |
 -- Module      : Crypto.Hash
@@ -24,27 +23,27 @@ module Crypto.Hash
     , hashlazy
     , hashUpdate
     -- * hash algorithms
-    , MD2
-    , MD4
-    , MD5
-    , SHA1
-    , SHA224
-    , SHA256
-    , SHA384
-    , SHA512
-    , RIPEMD160
-    , Tiger
-    , SHA3_224
-    , SHA3_256
-    , SHA3_384
-    , SHA3_512
-    , Skein256_224
-    , Skein256_256
-    , Skein512_224
-    , Skein512_256
-    , Skein512_384
-    , Skein512_512
-    , Whirlpool
+    , MD2(..)
+    , MD4(..)
+    , MD5(..)
+    , SHA1(..)
+    , SHA224(..)
+    , SHA256(..)
+    , SHA384(..)
+    , SHA512(..)
+    , RIPEMD160(..)
+    , Tiger(..)
+    , SHA3_224(..)
+    , SHA3_256(..)
+    , SHA3_384(..)
+    , SHA3_512(..)
+    , Skein256_224(..)
+    , Skein256_256(..)
+    , Skein512_224(..)
+    , Skein512_256(..)
+    , Skein512_384(..)
+    , Skein512_512(..)
+    , Whirlpool(..)
     -- * MAC algorithms
     , HMAC(..)
     , hmac
@@ -97,7 +96,7 @@ digestToHexByteString :: Digest a -> ByteString
 digestToHexByteString = toHex . toBytes
 
 #define DEFINE_INSTANCE(NAME, MODULENAME) \
-data NAME; \
+data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init } \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
@@ -106,7 +105,7 @@ instance HashAlgorithm NAME where \
     };
 
 #define DEFINE_INSTANCE_LEN(NAME, MODULENAME, LEN) \
-data NAME; \
+data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init LEN } \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
