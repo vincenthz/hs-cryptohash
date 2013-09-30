@@ -35,6 +35,7 @@ import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
 import Crypto.Hash.Internal (unsafeDoIO)
 
+-- | SHA3 Context
 newtype Ctx = Ctx ByteString
 
 {-# INLINE sizeCtx #-}

@@ -36,6 +36,7 @@ import Data.ByteString.Internal (create, toForeignPtr)
 import Data.Word
 import Crypto.Hash.Internal (unsafeDoIO)
 
+-- | MD2 Context
 newtype Ctx = Ctx ByteString
 
 {-# INLINE digestSize #-}
