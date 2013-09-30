@@ -32,7 +32,7 @@ import Crypto.Hash.Utils (toHex)
 --
 class HashAlgorithm a where
     -- | Block size in bytes the hash algorithm operates on
-    hashBlockSize :: a -> Int
+    hashBlockSize :: Context a -> Int
 
     -- | Initialize a new context for this hash algorithm
     hashInit     :: Context a

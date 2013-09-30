@@ -48,6 +48,7 @@ module Crypto.Hash
     -- * MAC algorithms
     , HMAC(..)
     , hmac
+    , hmacAlg
     )
     where
 
@@ -100,7 +101,7 @@ digestToHexByteString = toHex . toBytes
 data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init } \
-    ; hashBlockSize NAME = BLOCKSIZE \
+    ; hashBlockSize ~(Context _) = BLOCKSIZE \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
     ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize MODULENAME.init) } \
@@ -110,7 +111,7 @@ instance HashAlgorithm NAME where \
 data NAME = NAME deriving Show; \
 instance HashAlgorithm NAME where \
     { hashInit = Context c where { (MODULENAME.Ctx c) = MODULENAME.init LEN } \
-    ; hashBlockSize NAME = BLOCKSIZE \
+    ; hashBlockSize ~(Context _) = BLOCKSIZE \
     ; hashUpdates (Context c) bs = Context nc where { (MODULENAME.Ctx nc) = MODULENAME.updates (MODULENAME.Ctx c) bs } \
     ; hashFinalize (Context c) = Digest $ MODULENAME.finalize (MODULENAME.Ctx c) \
     ; digestFromByteString bs = if B.length bs == len then (Just $ Digest bs) else Nothing where { len = B.length (MODULENAME.finalize (MODULENAME.init LEN)) } \
@@ -159,16 +160,25 @@ instance Eq (HMAC a) where
 
 -- | compute a MAC using the supplied hashing function
 hmac :: HashAlgorithm a
-     => a                -- ^ Hash algorithm to use
-     -> ByteString       -- ^ Secret key
+     => ByteString       -- ^ Secret key
      -> ByteString       -- ^ Message to MAC
      -> HMAC a
-hmac hashAlg secret msg = HMAC $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
-    where opad = B.map (xor 0x5c) k'
-          ipad = B.map (xor 0x36) k'
+hmac secret msg = doHMAC hashInit
+  where doHMAC :: HashAlgorithm a => Context a -> HMAC a
+        doHMAC ctxInit = HMAC $ hashF $ B.append opad (toBytes $ hashF $ B.append ipad msg)
+          where opad = B.map (xor 0x5c) k'
+                ipad = B.map (xor 0x36) k'
 
-          k'  = B.append kt pad
-          kt  = if B.length secret > fromIntegral blockSize then toBytes (hashF secret) else secret
-          pad = B.replicate (fromIntegral blockSize - B.length kt) 0
-          blockSize = hashBlockSize hashAlg
-          hashF = hashFinalize . hashUpdate (hashInitAlg hashAlg)
+                k'  = B.append kt pad
+                kt  = if B.length secret > fromIntegral blockSize then toBytes (hashF secret) else secret
+                pad = B.replicate (fromIntegral blockSize - B.length kt) 0
+                hashF = hashFinalize . hashUpdate ctxInit
+                blockSize = hashBlockSize ctxInit
+
+-- | compute a HMAC using a specified algorithm
+hmacAlg :: HashAlgorithm a
+        => a           -- ^ the hash algorithm the actual value is unused.
+        -> ByteString  -- ^ Secret key
+        -> ByteString  -- ^ Message to MAC
+        -> HMAC a
+hmacAlg _ secret msg = hmac secret msg
