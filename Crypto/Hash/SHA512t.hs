@@ -28,6 +28,7 @@ import qualified Data.ByteString.Lazy as L
 
 import qualified Crypto.Hash.SHA512 as SHA512
 
+-- | SHA512 Context with variable size output
 data Ctx = Ctx !Int !SHA512.Ctx
 
 -- | init a context
