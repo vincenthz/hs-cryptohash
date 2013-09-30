@@ -49,8 +49,7 @@ module Crypto.Hash
     , HMAC(..)
     , hmac
     , hmacAlg
-    )
-    where
+    ) where
 
 import Crypto.Hash.Types
 import Crypto.Hash.Utils
