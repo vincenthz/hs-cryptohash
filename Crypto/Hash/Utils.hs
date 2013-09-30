@@ -23,6 +23,8 @@ import Foreign.Storable (poke, peek)
 import Crypto.Hash.Utils.Cpu
 import Data.Bits (testBit)
 
+-- | Convert a bytestring to the hexadecimal equivalent
+-- using 0123456789abcdef as digit
 toHex :: ByteString -> ByteString
 toHex (B.PS fp off len) = B.unsafeCreate (len*2) $ \d ->
         withForeignPtr fp $ \s -> start d (s `plusPtr` off)
