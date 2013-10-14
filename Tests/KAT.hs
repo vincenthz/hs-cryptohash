@@ -269,7 +269,7 @@ macTests =
     , testGroup "hmac-sha3-512" $ map (toMACTest SHA3_512) $ zip [0..] sha3_512_MAC_Vectors
     ]
     where toMACTest hashAlg (i, macVector) =
-            testCase (show i) (macResult macVector @=? toBytes (hmac hashAlg (macKey macVector) (macSecret macVector)))
+            testCase (show i) (macResult macVector @=? toBytes (hmacAlg hashAlg (macKey macVector) (macSecret macVector)))
 
 main = defaultMain
     [ testGroup "KATs" katTests
