@@ -139,6 +139,12 @@ void sha3_finalize(struct sha3_ctx *ctx, uint8_t *out)
 {
 	uint64_t w[25];
 
+	/* process full buffer if needed */
+	if (ctx->bufindex == ctx->bufsz) {
+		sha3_do_chunk(ctx->state, (uint64_t *) ctx->buf, ctx->bufsz / 8);
+		ctx->bufindex = 0;
+	}
+
 	/* add the 10*1 padding */
 	ctx->buf[ctx->bufindex++] = 1;
 	memset(ctx->buf + ctx->bufindex, 0, ctx->bufsz - ctx->bufindex);
