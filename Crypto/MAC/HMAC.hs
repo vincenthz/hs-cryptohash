@@ -6,7 +6,7 @@
 -- Portability : unknown
 --
 -- provide the HMAC (Hash based Message Authentification Code) base algorithm.
--- http://en.wikipedia.org/wiki/HMAC
+-- <http://en.wikipedia.org/wiki/HMAC>
 --
 module Crypto.MAC.HMAC
     ( hmac
@@ -17,7 +17,11 @@ import qualified Data.ByteString as B
 import Data.Bits (xor)
 
 -- | compute a MAC using the supplied hashing function
-hmac :: (ByteString -> ByteString) -> Int -> ByteString -> ByteString -> ByteString
+hmac :: (ByteString -> ByteString) -- ^ hash function
+     -> Int -- ^ block size
+     -> ByteString -- ^ secret
+     -> ByteString -- ^ message
+     -> ByteString
 hmac hashF blockSize secret msg = hashF $ B.append opad (hashF $ B.append ipad msg)
     where opad = B.map (xor 0x5c) k'
           ipad = B.map (xor 0x36) k'
