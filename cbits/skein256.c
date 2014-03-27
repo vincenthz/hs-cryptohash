@@ -124,6 +124,9 @@ void skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t to_fill;
 
+	if (!len)
+		return;
+
 	to_fill = 32 - ctx->bufindex;
 
 	if (ctx->bufindex == 32) {
