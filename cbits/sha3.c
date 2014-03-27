@@ -124,8 +124,8 @@ void sha3_update(struct sha3_ctx *ctx, uint8_t *data, uint32_t len)
 		ctx->bufindex = 0;
 	}
 
-	/* process as much ctx->bufsz-block as possible except the last one in case we finalize */
-	for (; len > ctx->bufsz; len -= ctx->bufsz, data += ctx->bufsz)
+	/* process as much ctx->bufsz-block */
+	for (; len >= ctx->bufsz; len -= ctx->bufsz, data += ctx->bufsz)
 		sha3_do_chunk(ctx->state, (uint64_t *) data, ctx->bufsz / 8);
 
 	/* append data into buf */
