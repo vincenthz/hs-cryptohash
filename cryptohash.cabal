@@ -98,6 +98,7 @@ Test-Suite test-kat
                    , byteable
                    , HUnit
                    , QuickCheck >= 2
+                   , quickcheck-instances >= 0.3.8
                    , test-framework >= 0.3.3
                    , test-framework-quickcheck2 >= 0.2.9
                    , test-framework-hunit

@@ -5,6 +5,8 @@ import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
 import Data.Byteable
+import Data.Foldable (foldl')
+import Data.Monoid (mconcat)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Crypto.Hash.MD2 as MD2
@@ -28,6 +30,8 @@ import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit
 import Test.HUnit ((@=?))
+
+import Test.QuickCheck.Instances ()
 
 v0,v1,v2 :: ByteString
 v0 = ""
@@ -271,8 +275,46 @@ macTests =
     where toMACTest hashAlg (i, macVector) =
             testCase (show i) (macResult macVector @=? toBytes (hmacAlg hashAlg (macKey macVector) (macSecret macVector)))
 
+macIncrementalTests :: [Test]
+macIncrementalTests =
+    [ testGroup "hmac-incremental-md5" $ map (toMACTest MD5) $ zip [0..] md5MACVectors
+    , testGroup "hmac-incremental-sha1" $ map (toMACTest SHA1) $ zip [0..] sha1MACVectors
+    , testGroup "hmac-incremental-sha256" $ map (toMACTest SHA256) $ zip [0..] sha256MACVectors
+    , testGroup "hmac-incremental-sha3-224" $ map (toMACTest SHA3_224) $ zip [0..] sha3_224_MAC_Vectors
+    , testGroup "hmac-incremental-sha3-256" $ map (toMACTest SHA3_256) $ zip [0..] sha3_256_MAC_Vectors
+    , testGroup "hmac-incremental-sha3-384" $ map (toMACTest SHA3_384) $ zip [0..] sha3_384_MAC_Vectors
+    , testGroup "hmac-incremental-sha3-512" $ map (toMACTest SHA3_512) $ zip [0..] sha3_512_MAC_Vectors
+
+    , testProperty "hmac-simple-incremental-md5" $ prop_inc0 MD5
+    , testProperty "hmac-simple-incremental-md5" $ prop_inc1 MD5
+    , testProperty "hmac-simple-incremental-sha1" $ prop_inc0 SHA1
+    , testProperty "hmac-simple-incremental-sha1" $ prop_inc1 SHA1
+    , testProperty "hmac-simple-incremental-sha256" $ prop_inc0 SHA256
+    , testProperty "hmac-simple-incremental-sha256" $ prop_inc1 SHA256
+    , testProperty "hmac-simple-incremental-sha3-224" $ prop_inc0 SHA3_224
+    , testProperty "hmac-simple-incremental-sha3-224" $ prop_inc1 SHA3_224
+    , testProperty "hmac-simple-incremental-sha3-256" $ prop_inc0 SHA3_256
+    , testProperty "hmac-simple-incremental-sha3-256" $ prop_inc1 SHA3_256
+    , testProperty "hmac-simple-incremental-sha3-384" $ prop_inc0 SHA3_384
+    , testProperty "hmac-simple-incremental-sha3-384" $ prop_inc1 SHA3_384
+    , testProperty "hmac-simple-incremental-sha3-512" $ prop_inc0 SHA3_512
+    , testProperty "hmac-simple-incremental-sha3-512" $ prop_inc1 SHA3_512
+    ]
+    where toMACTest hashAlg (i, macVector) =
+            testCase (show i) (macResult macVector @=? toBytes (hmacFinalize $ hmacUpdate initCtx (macSecret macVector)))
+              where initCtx = hmacInitAlg hashAlg (macKey macVector)
+
+          prop_inc0 :: HashAlgorithm a => a -> ByteString -> ByteString -> Bool
+          prop_inc0 hashAlg secret msg = hmacFinalize (hmacUpdate initCtx msg) == hmacAlg hashAlg secret msg
+              where initCtx = hmacInitAlg hashAlg secret
+
+          prop_inc1 :: HashAlgorithm a => a -> ByteString -> [ByteString] -> Bool
+          prop_inc1 hashAlg secret msgs = hmacFinalize (foldl' hmacUpdate initCtx msgs) == hmacAlg hashAlg secret (mconcat msgs)
+              where initCtx = hmacInitAlg hashAlg secret
+
 main = defaultMain
     [ testGroup "KATs" katTests
     , testGroup "API" apiTests
     , testGroup "MACs" macTests
+    , testGroup "Incremental MACs" macIncrementalTests
     ]
