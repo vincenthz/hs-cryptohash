@@ -6,7 +6,16 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- Crypto hash main module
+-- Generalized cryptographic hash interface, that you can use with cryptographic hash
+-- algorithm that belong to the HashAlgorithm type class.
+--
+-- > import Crypto.Hash
+-- >
+-- > sha1 :: ByteString -> Digest SHA1
+-- > sha1 = hash
+-- >
+-- > hexSha3_512 :: ByteString -> String
+-- > hexSha3_512 bs = show (hash bs :: Digest SHA3_512)
 --
 module Crypto.Hash
     (

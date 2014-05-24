@@ -26,9 +26,12 @@ import Crypto.Hash.Utils (toHex)
 --
 -- The hash algorithm is built over 3 primitives:
 --
---   init     : create a new context
---   updates  : update the context with some strict bytestrings
---   finalize : finalize the context into a digest
+-- * init     : create a new hashing context
+--
+-- * updates  : update the hashing context with some strict bytestrings
+--              and return the new context
+--
+-- * finalize : finalize the context into a digest
 --
 class HashAlgorithm a where
     -- | Block size in bytes the hash algorithm operates on
