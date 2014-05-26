@@ -17,6 +17,9 @@ import qualified Data.ByteString as B
 import Data.Bits (xor)
 
 -- | compute a MAC using the supplied hashing function
+--
+-- An incremental API can be found in the module "Crypto.Hash".
+--
 hmac :: (ByteString -> ByteString) -- ^ hash function
      -> Int -- ^ block size
      -> ByteString -- ^ secret

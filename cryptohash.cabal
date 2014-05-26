@@ -53,6 +53,7 @@ Library
   Extensions:        ForeignFunctionInterface
   Exposed-modules:   Crypto.Hash
                      Crypto.Hash.Types
+                     Crypto.MAC
                      Crypto.Hash.SHA1
                      Crypto.Hash.SHA224
                      Crypto.Hash.SHA256
@@ -98,9 +99,9 @@ Test-Suite test-kat
                    , byteable
                    , HUnit
                    , QuickCheck >= 2
-                   , test-framework >= 0.3.3
-                   , test-framework-quickcheck2 >= 0.2.9
-                   , test-framework-hunit
+                   , tasty
+                   , tasty-quickcheck
+                   , tasty-hunit
                    , cryptohash
 
 Benchmark bench-hashes

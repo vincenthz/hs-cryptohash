@@ -5,6 +5,8 @@ import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
 import Data.Byteable
+import Data.Foldable (foldl')
+import Data.Monoid (mconcat)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Crypto.Hash.MD2 as MD2
@@ -23,17 +25,20 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
+import Crypto.MAC
 
-import Test.Framework (Test, defaultMain, testGroup)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.Framework.Providers.HUnit
-import Test.HUnit ((@=?))
+import Test.Tasty
+import Test.Tasty.QuickCheck
+import Test.Tasty.HUnit
 
 v0,v1,v2 :: ByteString
 v0 = ""
 v1 = "The quick brown fox jumps over the lazy dog"
 v2 = "The quick brown fox jumps over the lazy cog"
 vectors = [ v0, v1, v2 ]
+
+instance Arbitrary ByteString where
+    arbitrary = B.pack `fmap` arbitrary
 
 data HashFct = HashFct
     { fctHash   :: (B.ByteString -> B.ByteString)
@@ -205,10 +210,10 @@ makeTestAlg (name, hash, results) = testGroup name $ concatMap maketest (zip3 [0
             , testCase (show i ++ " inc 16") (r @=? runtestinc 16 v)
             ]
 
-katTests :: [Test]
+katTests :: [TestTree]
 katTests = map makeTestAlg results
 
-apiTests :: [Test]
+apiTests :: [TestTree]
 apiTests =
     [ testCase "sha1 api" (runhash sha1Hash B.empty @=? show (hash B.empty :: Digest SHA1))
     , testCase "sha256 api" (runhash sha256Hash B.empty @=? show (hash B.empty :: Digest SHA256))
@@ -258,7 +263,7 @@ sha3_512_MAC_Vectors =
     [ MACVector sha3_key1 sha3_data1 "\xc2\x96\x2e\x5b\xbe\x12\x38\x00\x78\x52\xf7\x9d\x81\x4d\xbb\xec\xd4\x68\x2e\x6f\x09\x7d\x37\xa3\x63\x58\x7c\x03\xbf\xa2\xeb\x08\x59\xd8\xd9\xc7\x01\xe0\x4c\xec\xec\xfd\x3d\xd7\xbf\xd4\x38\xf2\x0b\x8b\x64\x8e\x01\xbf\x8c\x11\xd2\x68\x24\xb9\x6c\xeb\xbd\xcb"
     ]
 
-macTests :: [Test]
+macTests :: [TestTree]
 macTests =
     [ testGroup "hmac-md5" $ map (toMACTest MD5) $ zip [0..] md5MACVectors
     , testGroup "hmac-sha1" $ map (toMACTest SHA1) $ zip [0..] sha1MACVectors
@@ -271,8 +276,46 @@ macTests =
     where toMACTest hashAlg (i, macVector) =
             testCase (show i) (macResult macVector @=? toBytes (hmacAlg hashAlg (macKey macVector) (macSecret macVector)))
 
-main = defaultMain
+macIncrementalTests :: [TestTree]
+macIncrementalTests =
+    [ testGroup "hmac-md5" $ map (toMACTest MD5) $ zip [0..] md5MACVectors
+    , testGroup "hmac-sha1" $ map (toMACTest SHA1) $ zip [0..] sha1MACVectors
+    , testGroup "hmac-sha256" $ map (toMACTest SHA256) $ zip [0..] sha256MACVectors
+    , testGroup "hmac-sha3-224" $ map (toMACTest SHA3_224) $ zip [0..] sha3_224_MAC_Vectors
+    , testGroup "hmac-sha3-256" $ map (toMACTest SHA3_256) $ zip [0..] sha3_256_MAC_Vectors
+    , testGroup "hmac-sha3-384" $ map (toMACTest SHA3_384) $ zip [0..] sha3_384_MAC_Vectors
+    , testGroup "hmac-sha3-512" $ map (toMACTest SHA3_512) $ zip [0..] sha3_512_MAC_Vectors
+
+    , testProperty "hmac-md5" $ prop_inc0 MD5
+    , testProperty "hmac-md5" $ prop_inc1 MD5
+    , testProperty "hmac-sha1" $ prop_inc0 SHA1
+    , testProperty "hmac-sha1" $ prop_inc1 SHA1
+    , testProperty "hmac-sha256" $ prop_inc0 SHA256
+    , testProperty "hmac-sha256" $ prop_inc1 SHA256
+    , testProperty "hmac-sha3-224" $ prop_inc0 SHA3_224
+    , testProperty "hmac-sha3-224" $ prop_inc1 SHA3_224
+    , testProperty "hmac-sha3-256" $ prop_inc0 SHA3_256
+    , testProperty "hmac-sha3-256" $ prop_inc1 SHA3_256
+    , testProperty "hmac-sha3-384" $ prop_inc0 SHA3_384
+    , testProperty "hmac-sha3-384" $ prop_inc1 SHA3_384
+    , testProperty "hmac-sha3-512" $ prop_inc0 SHA3_512
+    , testProperty "hmac-sha3-512" $ prop_inc1 SHA3_512
+    ]
+    where toMACTest hashAlg (i, macVector) =
+            testCase (show i) (macResult macVector @=? toBytes (hmacFinalize $ hmacUpdate initCtx (macSecret macVector)))
+              where initCtx = hmacInitAlg hashAlg (macKey macVector)
+
+          prop_inc0 :: HashAlgorithm a => a -> ByteString -> ByteString -> Bool
+          prop_inc0 hashAlg secret msg = hmacFinalize (hmacUpdate initCtx msg) == hmacAlg hashAlg secret msg
+              where initCtx = hmacInitAlg hashAlg secret
+
+          prop_inc1 :: HashAlgorithm a => a -> ByteString -> [ByteString] -> Bool
+          prop_inc1 hashAlg secret msgs = hmacFinalize (foldl' hmacUpdate initCtx msgs) == hmacAlg hashAlg secret (mconcat msgs)
+              where initCtx = hmacInitAlg hashAlg secret
+
+main = defaultMain $ testGroup "cryptohash"
     [ testGroup "KATs" katTests
     , testGroup "API" apiTests
     , testGroup "MACs" macTests
+    , testGroup "Incremental MACs" macIncrementalTests
     ]
