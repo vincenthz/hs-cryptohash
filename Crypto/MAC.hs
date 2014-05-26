@@ -7,6 +7,7 @@
 --
 -- Crypto hash generic MAC (Message Authentification Code) module
 --
+{-# LANGUAGE BangPatterns #-}
 module Crypto.MAC
     (
     -- * MAC algorithms
@@ -30,7 +31,7 @@ import qualified Data.ByteString as B
 -- -------------------------------------------------------------------------- --
 -- Incremental HMAC
 
-data HMACContext hashalg = HMACContext (Context hashalg) (Context hashalg)
+data HMACContext hashalg = HMACContext !(Context hashalg) !(Context hashalg)
 
 hmacInit :: HashAlgorithm a
          => ByteString -- ^ Secret key
