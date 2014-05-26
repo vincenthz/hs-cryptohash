@@ -53,6 +53,7 @@ Library
   Extensions:        ForeignFunctionInterface
   Exposed-modules:   Crypto.Hash
                      Crypto.Hash.Types
+                     Crypto.MAC
                      Crypto.Hash.SHA1
                      Crypto.Hash.SHA224
                      Crypto.Hash.SHA256

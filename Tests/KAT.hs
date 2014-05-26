@@ -25,6 +25,7 @@ import qualified Crypto.Hash.Skein256 as Skein256
 import qualified Crypto.Hash.Skein512 as Skein512
 import qualified Crypto.Hash.Whirlpool as Whirlpool
 import Crypto.Hash
+import Crypto.MAC
 
 import Test.Tasty
 import Test.Tasty.QuickCheck
