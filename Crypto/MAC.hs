@@ -31,8 +31,11 @@ import qualified Data.ByteString as B
 -- -------------------------------------------------------------------------- --
 -- Incremental HMAC
 
+-- | Represent an ongoing HMAC state, that can be appended with 'hmacUpdate'
+-- and finalize to an HMAC with 'hmacFinalize'
 data HMACContext hashalg = HMACContext !(Context hashalg) !(Context hashalg)
 
+-- | Initialize a new incremental HMAC context
 hmacInit :: HashAlgorithm a
          => ByteString -- ^ Secret key
          -> HMACContext a
@@ -49,12 +52,14 @@ hmacInit secret = HMACContext octx ictx
           hashF = hashFinalize . hashUpdate ctxInit
           blockSize = hashBlockSize ctxInit
 
+-- | Initialize a new incremental HMAC context with a given hash algorithm.
 hmacInitAlg :: HashAlgorithm a
             => a           -- ^ the hash algorithm the actual value is unused.
             -> ByteString  -- ^ Secret key
             -> HMACContext a
 hmacInitAlg _ secret = hmacInit secret
 
+-- | Incrementally update a HMAC context
 hmacUpdate :: HashAlgorithm a
            => HMACContext a
            -> ByteString -- ^ Message to Mac
@@ -62,6 +67,7 @@ hmacUpdate :: HashAlgorithm a
 hmacUpdate (HMACContext octx ictx) msg =
     HMACContext octx (hashUpdate ictx msg)
 
+-- | Finalize a HMAC context and return the HMAC.
 hmacFinalize :: HashAlgorithm a
              => HMACContext a
              -> HMAC a
