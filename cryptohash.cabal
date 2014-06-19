@@ -70,6 +70,7 @@ Library
                      Crypto.Hash.Tiger
                      Crypto.Hash.Whirlpool
                      Crypto.MAC.HMAC
+                     Crypto.MAC.SHA3
   Other-modules:     Crypto.Hash.Utils
                      Crypto.Hash.Utils.Cpu
                      Crypto.Hash.Internal
