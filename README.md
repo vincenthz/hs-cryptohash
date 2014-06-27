@@ -1,15 +1,15 @@
 CryptoHash
 ==========
 
-hs-cryptohash provides lots of different secure digest algorithms, also
-called cryptohashes. It exposes every common hashes, but also some
-more exotic hashes, provides an extensive list of hashes available
-with a consistant API.
+`hs-cryptohash` provides many different secure digest algorithms, also
+called cryptographic hash functions or, simply, cryptohashes. The package
+exports common hash functions, as well as some more exotic ones, and
+provides a single API for them all.
 
-The general performance are comparable to the most optimised hashes
+The general performance is comparable to the most optimised implementations
 available.
 
-The complete list of supported hashes:
+Here is the complete list of supported algorithms:
 
 * MD2, MD4, MD5 
 * RIPEMD160
@@ -24,11 +24,9 @@ You can easily import any hash with the following:
 
     import qualified Crypto.Hash.<HASH> as <Hash>
 
-suggestion: it's easier to import qualified since there's
-a collision with the init symbol, but for only importing
-the hash or hashlazy function there's no such need.
-
-Every hashes, exposes a very similar API.
+We recommend using `import qualified` because the APIs are similar and
+many of the modules reuse the same names. However, if you are ony using
+one module, there is no need to qualify the names.
 
 Incremental API
 ---------------
