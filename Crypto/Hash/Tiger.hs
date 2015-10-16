@@ -84,13 +84,13 @@ withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
 withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
 withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
-foreign import ccall unsafe "tiger.h tiger_init"
+foreign import ccall unsafe "tiger.h cryptohash_tiger_init"
     c_tiger_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "tiger.h tiger_update"
+foreign import ccall "tiger.h cryptohash_tiger_update"
     c_tiger_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
-foreign import ccall unsafe "tiger.h tiger_finalize"
+foreign import ccall unsafe "tiger.h cryptohash_tiger_finalize"
     c_tiger_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()

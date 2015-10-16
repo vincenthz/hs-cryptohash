@@ -296,7 +296,7 @@ static const uint64_t t4[256]=
 	0xcd56d9430ea8280eULL,0xc12591d7535f5065ULL, 0xc83223f1720aef96ULL,0xc3a0396f7363a51fULL,
 }; 
 
-void tiger_init(struct tiger_ctx *ctx)
+void cryptohash_tiger_init(struct tiger_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -363,7 +363,7 @@ static inline void tiger_do_chunk(struct tiger_ctx *ctx, uint64_t *buf)
 	ctx->h[2] += c;
 }
 
-void tiger_update(struct tiger_ctx *ctx, uint8_t *data, uint32_t len)
+void cryptohash_tiger_update(struct tiger_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
 
@@ -390,7 +390,7 @@ void tiger_update(struct tiger_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void tiger_finalize(struct tiger_ctx *ctx, uint8_t *out)
+void cryptohash_tiger_finalize(struct tiger_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x01, };
 	uint64_t bits;
@@ -403,10 +403,10 @@ void tiger_finalize(struct tiger_ctx *ctx, uint8_t *out)
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
 	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
-	tiger_update(ctx, padding, padlen);
+	cryptohash_tiger_update(ctx, padding, padlen);
 
 	/* append length */
-	tiger_update(ctx, (uint8_t *) &bits, sizeof(bits));
+	cryptohash_tiger_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output hash */
 	p[0] = cpu_to_le64(ctx->h[0]);

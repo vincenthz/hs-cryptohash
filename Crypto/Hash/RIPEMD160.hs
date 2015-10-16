@@ -84,13 +84,13 @@ withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
 withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
 withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
-foreign import ccall unsafe "ripemd.h ripemd160_init"
+foreign import ccall unsafe "ripemd.h cryptohash_ripemd160_init"
     c_ripemd160_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "ripemd.h ripemd160_update"
+foreign import ccall "ripemd.h cryptohash_ripemd160_update"
     c_ripemd160_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
-foreign import ccall unsafe "ripemd.h ripemd160_finalize"
+foreign import ccall unsafe "ripemd.h cryptohash_ripemd160_finalize"
     c_ripemd160_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()

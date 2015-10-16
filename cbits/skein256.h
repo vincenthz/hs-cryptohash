@@ -38,8 +38,8 @@ struct skein256_ctx
 
 #define SKEIN256_CTX_SIZE		sizeof(struct skein256_ctx)
 
-void skein256_init(struct skein256_ctx *ctx, uint32_t hashlen);
-void skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len);
-void skein256_finalize(struct skein256_ctx *ctx, uint8_t *out);
+void cryptohash_skein256_init(struct skein256_ctx *ctx, uint32_t hashlen);
+void cryptohash_skein256_update(struct skein256_ctx *ctx, uint8_t *data, uint32_t len);
+void cryptohash_skein256_finalize(struct skein256_ctx *ctx, uint8_t *out);
 
 #endif

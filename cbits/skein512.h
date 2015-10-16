@@ -38,8 +38,8 @@ struct skein512_ctx
 
 #define SKEIN512_CTX_SIZE		sizeof(struct skein512_ctx)
 
-void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen);
-void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len);
-void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out);
+void cryptohash_skein512_init(struct skein512_ctx *ctx, uint32_t hashlen);
+void cryptohash_skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len);
+void cryptohash_skein512_finalize(struct skein512_ctx *ctx, uint8_t *out);
 
 #endif

@@ -84,13 +84,13 @@ withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
 withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
 withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
-foreign import ccall unsafe "md4.h md4_init"
+foreign import ccall unsafe "md4.h cryptohash_md4_init"
     c_md4_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "md4.h md4_update"
+foreign import ccall "md4.h cryptohash_md4_update"
     c_md4_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
-foreign import ccall unsafe "md4.h md4_finalize"
+foreign import ccall unsafe "md4.h cryptohash_md4_finalize"
     c_md4_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
