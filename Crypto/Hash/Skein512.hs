@@ -84,13 +84,13 @@ withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
 withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
 withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
-foreign import ccall unsafe "skein512.h skein512_init"
+foreign import ccall unsafe "skein512.h cryptohash_skein512_init"
     c_skein512_init :: Ptr Ctx -> Word32 -> IO ()
 
-foreign import ccall "skein512.h skein512_update"
+foreign import ccall "skein512.h cryptohash_skein512_update"
     c_skein512_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
-foreign import ccall unsafe "skein512.h skein512_finalize"
+foreign import ccall unsafe "skein512.h cryptohash_skein512_finalize"
     c_skein512_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()

@@ -26,7 +26,7 @@
 #include "bitfn.h"
 #include <string.h>
 
-void ripemd160_init(struct ripemd160_ctx *ctx)
+void cryptohash_ripemd160_init(struct ripemd160_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -249,7 +249,7 @@ static void ripemd160_do_chunk(struct ripemd160_ctx *ctx, uint32_t *buf)
 	ctx->h[0] = d2;
 }
 
-void ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
+void cryptohash_ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
 
@@ -272,7 +272,7 @@ void ripemd160_update(struct ripemd160_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void ripemd160_finalize(struct ripemd160_ctx *ctx, uint8_t *out)
+void cryptohash_ripemd160_finalize(struct ripemd160_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
 	uint64_t bits;
@@ -285,10 +285,10 @@ void ripemd160_finalize(struct ripemd160_ctx *ctx, uint8_t *out)
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
 	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
-	ripemd160_update(ctx, padding, padlen);
+	cryptohash_ripemd160_update(ctx, padding, padlen);
 
 	/* append length */
-	ripemd160_update(ctx, (uint8_t *) &bits, sizeof(bits));
+	cryptohash_ripemd160_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output digest */
 	p[0] = cpu_to_le32(ctx->h[0]);

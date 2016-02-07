@@ -84,13 +84,13 @@ withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
 withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
 withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
 
-foreign import ccall unsafe "sha512.h sha384_init"
+foreign import ccall unsafe "sha512.h cryptohash_sha384_init"
     c_sha384_init :: Ptr Ctx -> IO ()
 
-foreign import ccall "sha512.h sha384_update"
+foreign import ccall "sha512.h cryptohash_sha384_update"
     c_sha384_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
 
-foreign import ccall unsafe "sha512.h sha384_finalize"
+foreign import ccall unsafe "sha512.h cryptohash_sha384_finalize"
     c_sha384_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
 
 updateInternalIO :: Ptr Ctx -> ByteString -> IO ()

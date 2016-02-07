@@ -37,8 +37,8 @@ struct md2_ctx
 #define MD2_DIGEST_SIZE		16
 #define MD2_CTX_SIZE		sizeof(struct md2_ctx)
 
-void md2_init(struct md2_ctx *ctx);
-void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len);
-void md2_finalize(struct md2_ctx *ctx, uint8_t *out);
+void cryptohash_md2_init(struct md2_ctx *ctx);
+void cryptohash_md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len);
+void cryptohash_md2_finalize(struct md2_ctx *ctx, uint8_t *out);
 
 #endif

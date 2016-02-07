@@ -828,7 +828,7 @@ static void processBuffer(whirlpool_ctx * const ctx)
 /**
  * Initialize the hashing state.
  */
-void whirlpool_init(struct whirlpool_ctx * const ctx)
+void cryptohash_whirlpool_init(struct whirlpool_ctx * const ctx)
 {
 	int i;
 
@@ -848,7 +848,7 @@ void whirlpool_init(struct whirlpool_ctx * const ctx)
  *
  * This method maintains the invariant: bufferBits < DIGESTBITS
  */
-void whirlpool_update(struct whirlpool_ctx * const ctx, const uint8_t * const source, uint32_t sourceBytes)
+void cryptohash_whirlpool_update(struct whirlpool_ctx * const ctx, const uint8_t * const source, uint32_t sourceBytes)
 {
 	/*
 	   sourcePos
@@ -966,7 +966,7 @@ void whirlpool_update(struct whirlpool_ctx * const ctx, const uint8_t * const so
  * 
  * This method uses the invariant: bufferBits < DIGESTBITS
  */
-void whirlpool_finalize(struct whirlpool_ctx * const ctx, uint8_t * const result)
+void cryptohash_whirlpool_finalize(struct whirlpool_ctx * const ctx, uint8_t * const result)
 {
 	int i;
 	uint8_t *buffer    = ctx->buffer;

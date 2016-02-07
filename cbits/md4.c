@@ -27,7 +27,7 @@
 #include "bitfn.h"
 #include "md4.h"
 
-void md4_init(struct md4_ctx *ctx)
+void cryptohash_md4_init(struct md4_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -113,7 +113,7 @@ static void md4_do_chunk(struct md4_ctx *ctx, uint32_t *buf)
 	ctx->h[0] += a; ctx->h[1] += b; ctx->h[2] += c; ctx->h[3] += d;
 }
 
-void md4_update(struct md4_ctx *ctx, uint8_t *data, uint32_t len)
+void cryptohash_md4_update(struct md4_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
 
@@ -139,7 +139,7 @@ void md4_update(struct md4_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void md4_finalize(struct md4_ctx *ctx, uint8_t *out)
+void cryptohash_md4_finalize(struct md4_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
 	uint64_t bits;
@@ -151,10 +151,10 @@ void md4_finalize(struct md4_ctx *ctx, uint8_t *out)
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
 	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
-	md4_update(ctx, padding, padlen);
+	cryptohash_md4_update(ctx, padding, padlen);
 
 	/* append length */
-	md4_update(ctx, (uint8_t *) &bits, sizeof(bits));
+	cryptohash_md4_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output hash */
 	le32_to_cpu_array((uint32_t *) out, ctx->h, 4);

@@ -27,7 +27,7 @@
 #include "bitfn.h"
 #include "md2.h"
 
-void md2_init(struct md2_ctx *ctx)
+void cryptohash_md2_init(struct md2_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 	ctx->sz = 0ULL;
@@ -96,7 +96,7 @@ static void md2_do_chunk(struct md2_ctx *ctx, uint8_t *buf)
 		t = ctx->cksum[i] ^= S_table[buf[i] ^ t];
 }
 
-void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
+void cryptohash_md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
 
@@ -122,14 +122,14 @@ void md2_update(struct md2_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void md2_finalize(struct md2_ctx *ctx, uint8_t *out)
+void cryptohash_md2_finalize(struct md2_ctx *ctx, uint8_t *out)
 {
 	uint32_t index, padlen;
 
 	index = ctx->sz & 0xf;
 	padlen = 16 - index;
 
-	md2_update(ctx, padding_table[padlen], padlen);
-	md2_update(ctx, ctx->cksum, 16);
+	cryptohash_md2_update(ctx, padding_table[padlen], padlen);
+	cryptohash_md2_update(ctx, ctx->cksum, 16);
 	memcpy(out, ctx->h, 16);
 }

@@ -121,7 +121,7 @@ static inline void skein512_do_chunk(struct skein512_ctx *ctx, uint64_t *buf, ui
         ctx->h[7] = x[7] ^ cpu_to_le64(buf[7]);
 }
 
-void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
+void cryptohash_skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
 {
 	uint64_t buf[8];
 	memset(ctx, 0, sizeof(*ctx));
@@ -138,7 +138,7 @@ void skein512_init(struct skein512_ctx *ctx, uint32_t hashlen)
 	SET_TYPE(ctx, FLAG_FIRST | FLAG_TYPE(TYPE_MSG));
 }
 
-void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
+void cryptohash_skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t to_fill;
 
@@ -173,7 +173,7 @@ void skein512_update(struct skein512_ctx *ctx, uint8_t *data, uint32_t len)
 	}
 }
 
-void skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
+void cryptohash_skein512_finalize(struct skein512_ctx *ctx, uint8_t *out)
 {
 	uint32_t outsize;
 	uint64_t *p = (uint64_t *) out;
