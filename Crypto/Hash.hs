@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PackageImports #-}
 -- |
 -- Module      : Crypto.Hash
 -- License     : BSD-style

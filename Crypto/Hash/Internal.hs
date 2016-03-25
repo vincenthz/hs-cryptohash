@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PackageImports #-}
 
 -- |
 -- Module      : Crypto.Hash.Internal
@@ -6,9 +7,16 @@
 -- Maintainer  : Vincent Hanquez <vincent@snarc.org>
 -- Stability   : experimental
 -- Portability : unknown
-module Crypto.Hash.Internal where
+module Crypto.Hash.Internal
+    ( unsafeDoIO
+    , digestToByteString
+    , digestToByteStringWitness
+    ) where
 
 import System.IO.Unsafe
+import Data.ByteArray (convert)
+import "cryptonite" Crypto.Hash
+import Data.ByteString (ByteString)
 
 -- | perform io for hashes that do allocation and ffi.
 -- unsafeDupablePerformIO is used when possible as the
@@ -21,4 +29,10 @@ unsafeDoIO = unsafeDupablePerformIO
 #else
 unsafeDoIO = unsafePerformIO
 #endif
+
+digestToByteString :: HashAlgorithm h => Digest h -> ByteString
+digestToByteString = convert
+
+digestToByteStringWitness :: HashAlgorithm h => h -> Digest h -> ByteString
+digestToByteStringWitness _ = convert
 
