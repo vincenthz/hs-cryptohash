@@ -62,11 +62,11 @@ module Crypto.Hash
     ) where
 
 import Crypto.Hash.Types
-import Crypto.Hash.Utils
 import Data.ByteString (ByteString)
 import Data.Byteable
 import Data.Bits (xor)
 import qualified Data.ByteString as B
+import qualified Data.ByteArray.Encoding as B
 import qualified Data.ByteString.Lazy as L
 
 import qualified "cryptonite" Crypto.Hash as H
@@ -91,7 +91,7 @@ hashlazy lbs = hashFinalize $ hashUpdates hashInit (L.toChunks lbs)
 
 -- | Return the hexadecimal (base16) bytestring of the digest
 digestToHexByteString :: Digest a -> ByteString
-digestToHexByteString = toHex . toBytes
+digestToHexByteString = B.convertToBase B.Base16 . toBytes
 
 -- | Class representing hashing algorithms.
 --
