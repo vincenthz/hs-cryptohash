@@ -3,6 +3,13 @@ a superset of this, and also have more functionality. For new projects,
 you should *not* use this library anymore, and preferably you should
 convert old projects to `cryptonite` too.
 
+:warning: the SHA3 implementation available in Crypto.Hash.SHA3 is
+not SHA3 as standardized by NIST, but Keccak as submitted for the SHA3 contest.
+A matching implementation is available as Keccak in `cryptonite`, although I would
+recommend not to use unless you happens to really really need your digest value
+to be compatible. On the other hand, the centralized `Crypto.Hash` export
+a proper SHA3 implementation (as standardized by NIST)
+
 CryptoHash
 ==========
 

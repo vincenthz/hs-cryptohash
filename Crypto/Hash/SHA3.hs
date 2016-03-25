@@ -1,5 +1,4 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-
 -- |
 -- Module      : Crypto.Hash.SHA3
 -- License     : BSD-style
@@ -9,7 +8,16 @@
 --
 -- A module containing SHA3 bindings
 --
+-- WARNING: this implementation is not SHA3 as standardize, but
+-- SHA3 as submitted before standardisation. also known at the Keccak.
+--
+-- A matching implementation is available as Keccak in cryptonite
+-- for people that are using the pre-standard SHA3.
+--
+-- do not use.
+--
 module Crypto.Hash.SHA3
+{-# WARNING "this implementation is not SHA3 as standardized, but SHA3 as submitted before standardisation (Keccak)" #-}
     ( Ctx(..)
 
     -- * Incremental hashing Functions

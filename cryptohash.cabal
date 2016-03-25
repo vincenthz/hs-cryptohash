@@ -48,7 +48,7 @@ extra-source-files:
   README.md
 
 Library
-  Build-Depends:     base >= 4 && < 6, bytestring, byteable, cryptonite, memory, ghc-prim
+  Build-Depends:     base >= 4 && < 6, bytestring, byteable, cryptonite >= 0.13, memory, ghc-prim
   if impl(ghc >= 7.2.1)
     Extensions:      Trustworthy
   Extensions:        ForeignFunctionInterface
