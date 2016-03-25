@@ -56,4 +56,4 @@ hash d = digestToByteStringWitness H.SHA224 $ H.hash d
 
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy d = digestToByteStringWitness H.SHA224 $ H.hashlazy d
+hashlazy l = digestToByteStringWitness H.SHA224 $ H.hashlazy l

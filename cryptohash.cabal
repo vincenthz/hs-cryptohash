@@ -43,10 +43,8 @@ Cabal-Version:       >=1.8
 Homepage:            http://github.com/vincenthz/hs-cryptohash
 
 extra-source-files:
-  cbits/bitfn.h cbits/md2.h cbits/md4.h cbits/md5.h
-  cbits/ripemd.h cbits/sha1.h cbits/sha256.h cbits/sha512.h cbits/sha3.h
+  cbits/bitfn.h cbits/sha512.h cbits/sha3.h
   cbits/skein.h cbits/skein256.h cbits/skein512.h
-  cbits/tiger.h cbits/whirlpool.h
   README.md
 
 Library
@@ -78,18 +76,10 @@ Library
                      Crypto.Hash.Utils.Cpu
                      Crypto.Hash.Internal
   ghc-options:       -Wall -O2 -optc-O3 -fno-cse -fwarn-tabs
-  C-sources:         cbits/sha1.c
-                     cbits/sha256.c
-                     cbits/sha512.c
+  C-sources:         cbits/sha512.c
                      cbits/sha3.c
-                     cbits/md2.c
-                     cbits/md4.c
-                     cbits/md5.c
-                     cbits/ripemd.c
                      cbits/skein256.c
                      cbits/skein512.c
-                     cbits/tiger.c
-                     cbits/whirlpool.c
   Include-Dirs:      cbits
   if (arch(i386) || arch(x86_64))
     cpp-options: -DARCH_X86

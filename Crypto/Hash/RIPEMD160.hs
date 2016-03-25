@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE PackageImports #-}
 
 -- |
 -- Module      : Crypto.Hash.RIPEMD160
@@ -24,110 +24,36 @@ module Crypto.Hash.RIPEMD160
     ) where
 
 import Prelude hiding (init)
-import Foreign.Ptr
-import Foreign.ForeignPtr (withForeignPtr)
-import Foreign.Storable
-import Foreign.Marshal.Alloc
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString as B
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString.Internal (create, toForeignPtr)
-import Data.Word
-import Crypto.Hash.Internal (unsafeDoIO)
+import Crypto.Hash.Internal (digestToByteString, digestToByteStringWitness)
+
+import qualified "cryptonite" Crypto.Hash as H
 
 -- | RIPEMD160 Context
-newtype Ctx = Ctx ByteString
+newtype Ctx = Ctx (H.Context H.RIPEMD160)
 
-{-# INLINE digestSize #-}
-digestSize :: Int
-digestSize = 20
-
-{-# INLINE sizeCtx #-}
-sizeCtx :: Int
-sizeCtx = 128
-
-{-# RULES "digestSize" B.length (finalize init) = digestSize #-}
-{-# RULES "hash" forall b. finalize (update init b) = hash b #-}
-{-# RULES "hash.list1" forall b. finalize (updates init [b]) = hash b #-}
-{-# RULES "hashmany" forall b. finalize (foldl update init b) = hashlazy (L.fromChunks b) #-}
-{-# RULES "hashlazy" forall b. finalize (foldl update init $ L.toChunks b) = hashlazy b #-}
-
-{-# INLINE withByteStringPtr #-}
-withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
-withByteStringPtr b f =
-    withForeignPtr fptr $ \ptr -> f (ptr `plusPtr` off)
-    where (fptr, off, _) = toForeignPtr b
-
-{-# INLINE memcopy64 #-}
-memcopy64 :: Ptr Word64 -> Ptr Word64 -> IO ()
-memcopy64 dst src = mapM_ peekAndPoke [0..(16-1)]
-    where peekAndPoke i = peekElemOff src i >>= pokeElemOff dst i
-
-withCtxCopy :: Ctx -> (Ptr Ctx -> IO ()) -> IO Ctx
-withCtxCopy (Ctx ctxB) f = Ctx `fmap` createCtx
-    where createCtx = create sizeCtx $ \dstPtr ->
-                      withByteStringPtr ctxB $ \srcPtr -> do
-                          memcopy64 (castPtr dstPtr) (castPtr srcPtr)
-                          f (castPtr dstPtr)
-
-withCtxThrow :: Ctx -> (Ptr Ctx -> IO a) -> IO a
-withCtxThrow (Ctx ctxB) f =
-    allocaBytes sizeCtx $ \dstPtr ->
-    withByteStringPtr ctxB $ \srcPtr -> do
-        memcopy64 (castPtr dstPtr) (castPtr srcPtr)
-        f (castPtr dstPtr)
-
-withCtxNew :: (Ptr Ctx -> IO ()) -> IO Ctx
-withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
-
-withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
-withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
-
-foreign import ccall unsafe "ripemd.h cryptohash_ripemd160_init"
-    c_ripemd160_init :: Ptr Ctx -> IO ()
-
-foreign import ccall "ripemd.h cryptohash_ripemd160_update"
-    c_ripemd160_update :: Ptr Ctx -> Ptr Word8 -> Word32 -> IO ()
-
-foreign import ccall unsafe "ripemd.h cryptohash_ripemd160_finalize"
-    c_ripemd160_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
-
-updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
-updateInternalIO ptr d =
-    unsafeUseAsCStringLen d (\(cs, len) -> c_ripemd160_update ptr (castPtr cs) (fromIntegral len))
-
-finalizeInternalIO :: Ptr Ctx -> IO ByteString
-finalizeInternalIO ptr = create digestSize (c_ripemd160_finalize ptr)
-
-{-# NOINLINE init #-}
 -- | init a context
 init :: Ctx
-init = unsafeDoIO $ withCtxNew $ c_ripemd160_init
+init = Ctx H.hashInit
 
-{-# NOINLINE update #-}
 -- | update a context with a bytestring
 update :: Ctx -> ByteString -> Ctx
-update ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+update (Ctx ctx) d = Ctx $ H.hashUpdate ctx d
 
-{-# NOINLINE updates #-}
 -- | updates a context with multiples bytestring
 updates :: Ctx -> [ByteString] -> Ctx
-updates ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
+updates (Ctx ctx) d =
+    Ctx $ H.hashUpdates ctx d
 
-{-# NOINLINE finalize #-}
 -- | finalize the context into a digest bytestring
 finalize :: Ctx -> ByteString
-finalize ctx = unsafeDoIO $ withCtxThrow ctx finalizeInternalIO
+finalize (Ctx ctx) = digestToByteString $ H.hashFinalize ctx
 
-{-# NOINLINE hash #-}
 -- | hash a strict bytestring into a digest bytestring
 hash :: ByteString -> ByteString
-hash d = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
-    c_ripemd160_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
+hash d = digestToByteStringWitness H.RIPEMD160 $ H.hash d
 
-{-# NOINLINE hashlazy #-}
 -- | hash a lazy bytestring into a digest bytestring
 hashlazy :: L.ByteString -> ByteString
-hashlazy l = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
-    c_ripemd160_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+hashlazy l = digestToByteStringWitness H.RIPEMD160 $ H.hashlazy l
