@@ -1,10 +1,10 @@
-CryptoHash
-==========
-
 :warning: this library is now deprecated in favor of `cryptonite`, which is
 a superset of this, and also have more functionality. For new projects,
 you should *not* use this library anymore, and preferably you should
 convert old projects to `cryptonite` too.
+
+CryptoHash
+==========
 
 `hs-cryptohash` provides many different secure digest algorithms, also
 called cryptographic hash functions or, simply, cryptohashes. The package
